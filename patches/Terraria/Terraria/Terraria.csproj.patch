@@ -1,12 +1,12 @@
 --- src/decompiled/Terraria/Terraria.csproj
 +++ src/Terraria/Terraria/Terraria.csproj
-@@ -1,39 +_,56 @@
+@@ -1,40 +_,57 @@
  <Project Sdk="Microsoft.NET.Sdk">
  	<Import Project="../Configuration.targets" />
 +	<Import Project="../../WorkspaceInfo.targets" />
  	<PropertyGroup>
  		<OutputType>WinExe</OutputType>
- 		<Version>1.4.5.8</Version>
+ 		<Version>1.4.6.1</Version>
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2026 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -48,6 +48,7 @@
  		<Reference Include="Newtonsoft.Json" />
 -		<Reference Include="NVorbis" />
 +		<Reference Include="NVorbis" Condition="$(DefineConstants.Contains('CLIENT'))" />
+ 		<Reference Include="OpenNAT" />
  		<Reference Include="RailSDK.Net" />
 -		<Reference Include="Steamworks.NET" />
 +		<Reference Include="Steamworks.NET">
@@ -66,7 +67,7 @@
  		<Reference Include="WindowsBase" />
  	</ItemGroup>
  	<ItemGroup>
-@@ -42,7 +_,33 @@
+@@ -43,7 +_,33 @@
  		<EmbeddedResource Include="GameContent/WorldBuilding/*" />
  		<EmbeddedResource Include="IO/Data/*" />
  		<EmbeddedResource Include="Libraries/**" />

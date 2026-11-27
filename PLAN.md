@@ -180,3 +180,17 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
     decompile doesn't extract it. Copied from the Windows depot into netcore `Libraries/Common/` (patches/ carries the binary).
   - src/TerrariaNetCore builds: `dotnet build Terraria/Terraria.csproj -c Release -p:TerrariaSteamPath=/tmp/tml146-netcore-out`, 0 errors, ~15s.
   - tml re-patched on the new base: 12 failed, 191 fuzzy (log `.agents/scout/patch-tml-r2.patch.log`). Same files as the scout.
+- 2026-11-26: Phase 3 tml layer done (commit abff8996ce). The layer re-patches with 3901 exact hunks and 0 offset, 0 fuzzy, 0 failed. `src/tModLoader` builds with 0 errors:
+  `dotnet build Terraria/Terraria.csproj -c Release -p:tModLoaderSteamPath=/tmp/tml146-tml-out` (~15s incremental).
+  - Review was split across 5 subagents by file group (networking on Sonnet; Player on Sonnet after a Haiku run stalled with no output;
+    Main, Projectile/NPC/EmoteBubble and the small files on Haiku). Reports are in /tmp/tml146-step2/report-*.md (scratch, may be gone).
+  - The most common fuzzy failure was hunks pasting 1.4.5.8 decompiler local names (num/flag/bitsByte/player renumbered in 1.4.6). They either fail to compile
+    or, worse, compile against the wrong variable (LiquidRenderer TopWall, snapping-stone damage). The second most common was hunks landing in the wrong method
+    (Main music switches pasted into DrawNPCExtras, Player QuickBuff mana inserted into UpdateDyes, Netplay hunks inserted into CheckSection's finally block).
+  - Compared warnings against a TerrariaNetCore build (new CS0219/CS0162/CS1717) to find silent bugs. This caught the flail spin distance
+    (vanilla 1.4.6 per-flail `num15`, tML hard-coded 30f) and the angler decoration reward missing `SetDefaults(type)` (already broken in the upstream patch).
+  - Decisions: `Projectile.minionSlots` stays **float** (vanilla 1.4.6 made it int; keeping float keeps the mod API and binary compatibility).
+    `Netplay.UseGNS` defaults to false. Emote anchor uses vanilla's ProjectileKey. New vanilla `EntitySource_OnHit_AccessoryProc/TagProc`
+    now derive from tML `EntitySource_OnHit`. New crossplay UI states get an unused `PreviousUIState`.
+  - Open (unverified, check in-game): MessageBuffer case 41 now also skips `itemAnimationMax` sync. Projectile `OnKill` now fires before
+    `active = false`. `ApplyStatsFromSource` no longer copies `tagEffectType` (vanilla dropped it). Accessory slot UI loop bounds in Main were remapped.

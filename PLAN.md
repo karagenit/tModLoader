@@ -212,3 +212,10 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
 - 2026-11-26: Phase 6 build done. terraria-time-limit `src/tModLoader.targets` gained a `tModLoaderDir` property. Build with
   `dotnet build "-p:tModLoaderDir=$HOME/Library/Application Support/Steam/steamapps/common/tModLoaderDev" "-p:ExtraBuildModFlags=-tmlsavedirectory \"$HOME/Library/Application Support/Terraria/tModLoader-146alpha\""`.
   0 warnings. The .tmod (tML 9999.0) went to tModLoader-146alpha/Mods with enabled.json, and tModLoader-dev/Mods was untouched. In-game load pending.
+- 2026-11-26: Phases 5 + 6 done (user tested in-game). Fix: JB.plr showed "(UnknownError)" because of an ArgumentException in
+  `LoadPlayer_LastMinuteFixes`. Vanilla 1.4.6 changed it to use `GetEffectiveArmor(i)` (favorited items shared across loadouts), but tML's
+  per-item split swapped `armor` for a 1-element array with i=0. That made CanShareArmor index a 1-length armor array and also check the head slot.
+  The fix: the outer loop passes `GetEffectiveArmor(i)` into the per-item overload, which uses the item directly (no armor swap). After that, JB and
+  The_DLC_of_No_Remorse load with the house and inventory correct, and a save -> reload round-trip keeps the changes. The .wld is still release 329.
+  .tplr/.twld sidecars are written. TerrariaTimeLimit loads, with world enter/leave lines logged (its config Enabled=False by default in the new save dir).
+  Lesson: patches that apply exact can still break semantically when vanilla changes a method body that a tML hack depends on. Runtime is the only check.

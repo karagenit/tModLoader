@@ -9301,13 +9301,14 @@
  				continue;
  
  			for (int j = i + 1; j < 10; j++) {
-@@ -46693,7 +_,29 @@
+@@ -46693,8 +_,25 @@
  	{
  		newPlayer.skinVariant = (int)MathHelper.Clamp(newPlayer.skinVariant, 0f, PlayerVariantID.Count - 1);
  		newPlayer.voiceVariant = Utils.Clamp(newPlayer.voiceVariant, 1, 4);
 +
  		for (int i = 3; i < 10; i++) {
-+			LoadPlayer_LastMinuteFixes(newPlayer, newPlayer.armor[i]);
+-			Item effectiveArmor = newPlayer.GetEffectiveArmor(i);
++			LoadPlayer_LastMinuteFixes(newPlayer, newPlayer.GetEffectiveArmor(i));
 +		}
 +
 +		var modSlotPlayer = AccessorySlotLoader.ModSlotPlayer(newPlayer);
@@ -9321,32 +9322,26 @@
 +	//TML: Method split to take an individual item param
 +	private static void LoadPlayer_LastMinuteFixes(Player newPlayer, Item item)
 +	{
-+		// Fake variables
-+		var armor = newPlayer.armor;
-+		newPlayer.armor = new[] { item };
-+		int i = 0;
-+
-+		// Originally the for loop in the previous method
++		// Originally the for loop in the previous method. Vanilla slots pass in GetEffectiveArmor(i)
 +		{
- 			Item effectiveArmor = newPlayer.GetEffectiveArmor(i);
++			Item effectiveArmor = item;
  			int type = effectiveArmor.type;
  			if (type == 908 || type == 5000)
+ 				newPlayer.lavaMax += 420;
 @@ -46704,6 +_,7 @@
  
  			if (newPlayer.wingsLogic == 0 && effectiveArmor.wingSlot >= 0) {
  				newPlayer.wingsLogic = effectiveArmor.wingSlot;
-+				newPlayer.equippedWings = newPlayer.armor[i];
++				newPlayer.equippedWings = effectiveArmor;
  				newPlayer.hasWings = true;
  			}
  
-@@ -46716,7 +_,16 @@
+@@ -46715,8 +_,14 @@
+ 
  			newPlayer.lavaTime = newPlayer.lavaMax;
  		}
- 
-+		// restore armor variable
-+		newPlayer.armor = armor;
 +	}
-+
+ 
 +	private static void LoadPlayer_Finish(Player newPlayer)
 +	{
  		newPlayer.FixLoadedData();

@@ -146,3 +146,11 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
 
 ## Status log
 - 2026-11-26: Fork created, branch 1.4.6-alpha at upstream 1.4.5 9d19c0f61. AGENTS.md fork section and this plan added. Nothing run yet.
+- 2026-11-26: Decisions (user): crossplay is not needed. Stub/disable crossplay-only code (GNS, LAN discovery, server lists, new MP UI)
+  wherever it conflicts, and keep tML's existing Steam/direct-IP multiplayer. Note: vanilla 1.4.6 ships a new native `libGNS_Wrapper.dylib`
+  (osx/ next to libsteam_api) that tML doesn't bundle, which is another reason to stub. Skip the Phase 0 1.4.5.8 baseline and treat the 11 rejects as known.
+  FNA: option (a), stale-display-id.patch applied to the FNA submodule working tree (uncommitted, `m FNA` in git status). It also adds
+  `[FNA-PATCH]` log lines. Save dir: `~/Library/Application Support/Terraria/tModLoader-146alpha`. Commit to 1.4.6-alpha and push to `origin` freely.
+  Fixing is delegated heavily to Haiku subagents, with high-level validation only.
+- 2026-11-26: Phase 0.1 done. `./setup-cli.sh --help` inits submodules and builds the CLI fine on macOS (.NET 10.0.404). Waiting on the
+  user's `download_depot` for the Windows client.

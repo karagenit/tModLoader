@@ -169,3 +169,14 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
   - tml: 490 files, 3554 exact, 158 offset, 190 fuzzy, 12 failed. Failed: Netplay 3, Player 2, NetMessage 2, EmoteBubble 2, Projectile 1,
     NPC 1, MessageBuffer 1. Fuzzy-only hot spots: MessageBuffer 41, Main 37, NetMessage 20, Player 18, Projectile 18, Item 8, plus ~27 files with 1-5.
   - Much smaller than feared. The real risk is the 190 fuzzy hunks (possible misplacement) and compile errors from 1.4.6 API changes, not the 13 failures.
+- 2026-11-26: Phase 3 terraria + netcore layers done (commits 796008316, 41a58ff9f). Both re-patch with 0 fuzzy / 0 failed.
+  - terraria: WindowsLaunch SERVER handler re-added after vanilla's new Preload() calls (+ the lost closing #endif). Netplay.cs.patch deleted:
+    it restored COM NATUPNPLib UPnP for Windows servers, but vanilla 1.4.6 OpenPort/ClosePort already call managed UPNPUtility (Open.Nat).
+  - netcore: the low-quality (~50%) fuzzy Netplay hunks had silently landed in the wrong places (deleted fullBuffer/Direct* fields,
+    injected `new UPnPNAT()` into KickClient). Lesson for the tml layer: treat fuzzy hunks under ~70% quality as suspect.
+    Kept only the broadcast-thread Abort fix. New 1.4.6 `CleanupClientThreads` calls Thread.Abort (PlatformNotSupported on .NET 5+):
+    replaced with `Join(1000)` under NETCORE (client loops exit on Netplay.Disconnect).
+  - vanilla 1.4.6 references OpenNAT.dll (Re-Logic net40 build of Lontivero Open.Nat), shipped next to Terraria.exe, not embedded, so
+    decompile doesn't extract it. Copied from the Windows depot into netcore `Libraries/Common/` (patches/ carries the binary).
+  - src/TerrariaNetCore builds: `dotnet build Terraria/Terraria.csproj -c Release -p:TerrariaSteamPath=/tmp/tml146-netcore-out`, 0 errors, ~15s.
+  - tml re-patched on the new base: 12 failed, 191 fuzzy (log `.agents/scout/patch-tml-r2.patch.log`). Same files as the scout.

@@ -54,7 +54,11 @@ Not a goal: cross-play, Workshop/publishing, upstreaming (if that ever happens, 
 - `setup` = decompile + `regen-source` (the 3 patch steps). Useful flags: `-f/--no-prompts`, `--plain-progress`, `--terraria-steam-dir <dir>`,
   `--tml-dev-steam-dir <dir>`, and on patch commands `-m EXACT|OFFSET|FUZZY`. setup/regen-source silently downgrade FUZZY to OFFSET,
   so run the `patch <layer> -m FUZZY` commands individually.
-- Results: `setup/logs/patch.log` (per file exact/offset/fuzzy/failed). Rejects are `.rej` files (probably next to the file in src/; confirm).
+- Results: `setup/logs/patch.log`. Each file's header line has exact/offset/fuzzy/failed counters, but they're BROKEN (running totals shared across
+  parallel tasks), so count the per-hunk `EXACT:/OFFSET:/FUZZY:/FAILURE: @@ ... @@` lines under each header instead:
+  `.agents/scripts/summarize-patchlog.sh setup/logs/patch.log`. The CLI does NOT write `.rej` files (only the PatchReviewer GUI does). A failed
+  hunk is simply missing from src/: find it in the layer's `.patch` file by its `@@` header. A patch whose target file no longer exists crashes
+  the whole run with DirectoryNotFoundException (see setup/logs/error.log).
   The PatchReviewer GUI isn't usable from the CLI or on macOS. Review fuzzy hunks by hand, because fuzzy can apply a hunk in the wrong place.
 - After fixing a layer in `src/<layer>`, regenerate its patches with `diff terraria|netcore|tml`. It only diffs files newer than the cutoff
   stored in `setup/user.settings`, and a patch run resets that cutoff. So run patch -> fix -> diff per layer, in order.
@@ -154,3 +158,14 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
   Fixing is delegated heavily to Haiku subagents, with high-level validation only.
 - 2026-11-26: Phase 0.1 done. `./setup-cli.sh --help` inits submodules and builds the CLI fine on macOS (.NET 10.0.404). Waiting on the
   user's `download_depot` for the Windows client.
+- 2026-11-26: Phase 0.2 + 1 done. Windows client from depot 105601 (manifest 7687309846553561292); Terraria.exe and TerrariaServer.exe both
+  1.4.6.1, curRelease 329. Backup (no Content/) in `~/Documents/tml-146-vanilla/win-depot-105601/`. Client copied to Resources as
+  `Terraria_v1.4.6.1_win.exe`. The server was downloaded by setup from terraria-server-1461.zip. Pins bumped; decompile took ~3 min, no errors.
+  The FNA working-tree patch survives setup-cli.sh's `git submodule update`.
+- 2026-11-26: Phase 2 scout (FUZZY, each layer on top of the previous). Logs are in `.agents/scout/`.
+  - terraria: 1 failed (WindowsLaunch.cs), 6 fuzzy (Terraria.csproj, Program.cs, Netplay.cs x3, WindowsLaunch.cs).
+  - netcore: 1.4.6 removed `Terraria/NATUPNPLib/*` (vanilla UPNPUtility.cs now uses managed Open.Nat), so the 4 NATUPNPLib netcore patches
+    were deleted (they crashed the run). After that: 0 failed, 8 fuzzy (Netplay.cs x6, Terraria.csproj, IO/WorldFile.cs).
+  - tml: 490 files, 3554 exact, 158 offset, 190 fuzzy, 12 failed. Failed: Netplay 3, Player 2, NetMessage 2, EmoteBubble 2, Projectile 1,
+    NPC 1, MessageBuffer 1. Fuzzy-only hot spots: MessageBuffer 41, Main 37, NetMessage 20, Player 18, Projectile 18, Item 8, plus ~27 files with 1-5.
+  - Much smaller than feared. The real risk is the 190 fuzzy hunks (possible misplacement) and compile errors from 1.4.6 API changes, not the 13 failures.

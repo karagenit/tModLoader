@@ -194,3 +194,11 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
     now derive from tML `EntitySource_OnHit`. New crossplay UI states get an unused `PreviousUIState`.
   - Open (unverified, check in-game): MessageBuffer case 41 now also skips `itemAnimationMax` sync. Projectile `OnKill` now fires before
     `active = false`. `ApplyStatsFromSource` no longer copies `tagEffectType` (vanilla dropped it). Accessory slot UI loop bounds in Main were remapped.
+- 2026-11-26: Phase 4 done. No code changes were needed. A grep of the 1.4.6.1 decompile for release gates >= 324 shows the only new save-format items:
+  world `Main.noSpidersSeed` (read if version >= 328, written unconditionally) plus `FixNoSpidersWorlds()` for worlds <= 328, and the
+  `servers.dat` recent-server fields (>= 327). Player saves have no new gates (the newest is 324). The `> 329` LaterVersion limits are in WorldFile,
+  WorldMap and Player. The tml layer has all of these unchanged, and noSpidersSeed is synced in NetMessage/MessageBuffer msg 7, the same as vanilla.
+  tML's own gates are symbolic: TileEntity.Read(Main.curRelease), ModTileEntity.NumVanilla via reflection, and the handshake uses
+  ModNet.NetVersionString. MessageBuffer accepts "Terraria"+329. InstallVerifier's stale TerrariaVersion and vanillaSteamApiHash only matter for GOG
+  (the vanilla hash is unused, and Steam is detected from the CWD under steamapps), so they're left alone. The 1.4.6 vanilla libsteam_api.dylib md5 is a56aefdb...
+  Only tML's bundled copy is hash-checked.

@@ -202,3 +202,13 @@ so it needs a switch or property; see that repo's `.agents/notes/project/build-i
   ModNet.NetVersionString. MessageBuffer accepts "Terraria"+329. InstallVerifier's stale TerrariaVersion and vanillaSteamApiHash only matter for GOG
   (the vanilla hash is unused, and Steam is detected from the CWD under steamapps), so they're left alone. The 1.4.6 vanilla libsteam_api.dylib md5 is a56aefdb...
   Only tML's bundled copy is hash-checked.
+- 2026-11-26: Phase 5 in progress. `dotnet build Terraria/Terraria.csproj -c Release` (default tModLoaderSteamPath) installs into tModLoaderDev: 0 errors.
+  Launch: `cd tModLoaderDev && bash start-tModLoader.sh -tmlsavedirectory "$HOME/Library/Application Support/Terraria/tModLoader-146alpha"`.
+  The script isn't executable, hence `bash`. It installs a local dotnet into tModLoaderDev/dotnet on the first run. The first launch stops at
+  language selection (the log looks stalled until it's clicked). Then it reaches the main menu, "Mod Load Completed", with no errors. The MemoryTracking
+  proc_pidpath "Silently Caught" warnings also appear on Steam tML, so they're harmless. The save dir flag works.
+  Vanilla Players/ and Worlds/ backed up to `~/Documents/tml-146-vanilla/save-backup-2026-11-26/`. Copies of JB.plr (+ JB/ map dir) and
+  The_DLC_of_No_Remorse.wld placed in tModLoader-146alpha. In-game load/save/reload test pending (user).
+- 2026-11-26: Phase 6 build done. terraria-time-limit `src/tModLoader.targets` gained a `tModLoaderDir` property. Build with
+  `dotnet build "-p:tModLoaderDir=$HOME/Library/Application Support/Steam/steamapps/common/tModLoaderDev" "-p:ExtraBuildModFlags=-tmlsavedirectory \"$HOME/Library/Application Support/Terraria/tModLoader-146alpha\""`.
+  0 warnings. The .tmod (tML 9999.0) went to tModLoader-146alpha/Mods with enabled.json, and tModLoader-dev/Mods was untouched. In-game load pending.

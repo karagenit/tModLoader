@@ -5,7 +5,7 @@ public class SecretKeyProvider
 	private readonly TerrariaExecutableSetter terrariaExecutableSetter;
 	private readonly TerrariaDecompileExecutableProvider terrariaDecompileExecutableProvider;
 
-	private readonly Version PreviousKeyClientVersion = new("1.4.5.8");
+	private readonly Version PreviousKeyClientVersion = new("1.4.6.1");
 
 	public SecretKeyProvider(TerrariaExecutableSetter terrariaExecutableSetter, TerrariaDecompileExecutableProvider terrariaDecompileExecutableProvider)
 	{

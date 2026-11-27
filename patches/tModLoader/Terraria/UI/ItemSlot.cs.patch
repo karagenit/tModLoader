@@ -876,7 +876,7 @@
  	private static Item DyeSwap(Item item, out bool success, out int targetSlot)
  	{
  		targetSlot = -1;
-@@ -3181,7 +_,7 @@
+@@ -3180,7 +_,7 @@
  
  	public static Color GetItemLight(ref Color currentColor, ref float scale, int type, bool outInTheWorld = false, float lightScalar = 1f)
  	{
@@ -885,7 +885,7 @@
  			return currentColor;
  
  		if (type == 662 || type == 663 || type == 5444 || type == 5450 || type == 5643) {
-@@ -3392,6 +_,18 @@
+@@ -3391,6 +_,18 @@
  						PlayerInput.SettingsForUI.TryRevertingToMouseMode();
  					}
  				}
@@ -904,7 +904,7 @@
  				else if (inv[slot].stack == 1 && inv[slot].CanBeEquipped()) {
  					s += PlayerInput.BuildCommand(Lang.misc[67].Value, PlayerInput.ProfileGamepadUI.KeyStatus["Grapple"]);
  					if (CanExecuteCommand() && PlayerInput.Triggers.JustPressed.Grapple) {
-@@ -3507,7 +_,10 @@
+@@ -3506,7 +_,10 @@
  					}
  				}
  
@@ -915,7 +915,7 @@
  					s += PlayerInput.BuildCommand(Language.GetTextValue("UI.LoadoutShare"), PlayerInput.ProfileGamepadUI.KeyStatus["SmartCursor"]);
  					if (CanExecuteCommand() && PlayerInput.Triggers.JustPressed.SmartCursor) {
  						ToggleLoadoutShare(inv, context, slot);
-@@ -3674,7 +_,10 @@
+@@ -3673,7 +_,10 @@
  
  		_ = 41;
  		if (!Main.mouseItem.IsAir) {

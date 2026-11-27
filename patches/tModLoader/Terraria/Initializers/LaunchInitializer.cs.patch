@@ -15,11 +15,10 @@
  
  namespace Terraria.Initializers;
  
-@@ -27,13 +_,58 @@
- 		string s;
+@@ -28,6 +_,51 @@
  		if ((s = TryParameter("-p", "-port")) != null && int.TryParse(s, out var result))
  			Netplay.ListenPort = result;
-+
+ 
 +		// Added by TML.
 +		if (TryParameter("-modpack") is string modPack)
 +			ModOrganizer.commandLineModPack = modPack;
@@ -64,9 +63,11 @@
 +				WorldGen.playWorld();
 +			};
 +		}
++
+ 		if (HasParameter("-nogns"))
+ 			Netplay.UseGNS = false;
  	}
- 
- 	private static void LoadClientParameters(Main game)
+@@ -36,7 +_,7 @@
  	{
  		string iP;
  		if ((iP = TryParameter("-j", "-join")) != null)
@@ -75,7 +76,7 @@
  
  		string arg;
  		if ((arg = TryParameter("-pass", "-password")) != null) {
-@@ -47,6 +_,13 @@
+@@ -50,6 +_,13 @@
  
  	private static void LoadServerParameters(Main game)
  	{
@@ -89,7 +90,7 @@
  		try {
  			string s;
  			if ((s = TryParameter("-forcepriority")) != null) {
-@@ -86,6 +_,7 @@
+@@ -89,6 +_,7 @@
  		}
  		catch {
  		}
@@ -97,7 +98,7 @@
  
  		string value;
  		if ((value = TryParameter("-maxplayers", "-players")) != null) {
-@@ -105,6 +_,28 @@
+@@ -108,6 +_,28 @@
  		if ((s2 = TryParameter("-language")) != null)
  			LanguageManager.Instance.SetLanguage(s2);
  
@@ -126,7 +127,7 @@
  		string worldName;
  		if ((worldName = TryParameter("-worldname")) != null)
  			game.SetWorldName(worldName);
-@@ -113,6 +_,14 @@
+@@ -116,6 +_,14 @@
  		if ((newMOTD = TryParameter("-motd")) != null)
  			game.NewMOTD(newMOTD);
  
@@ -141,7 +142,7 @@
  		string banFilePath;
  		if ((banFilePath = TryParameter("-banlist")) != null)
  			Netplay.BanFilePath = banFilePath;
-@@ -180,7 +_,7 @@
+@@ -183,7 +_,7 @@
  		return false;
  	}
  

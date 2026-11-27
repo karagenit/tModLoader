@@ -1,0 +1,12 @@
+--- src/TerrariaNetCore/Terraria/GameContent/UI/States/UIMultiplayerConnectOptions.cs
++++ src/tModLoader/Terraria/GameContent/UI/States/UIMultiplayerConnectOptions.cs
+@@ -12,6 +_,9 @@
+ 
+ public class UIMultiplayerConnectOptions : UIState, IHaveBackButtonCommand
+ {
++	// Added by TML. Unused, HandleBackButtonUsage has its own logic.
++	public UIState PreviousUIState { get; set; }
++
+ 	private UIMultiplayerLobby.ServerInformation EditEntry;
+ 	private UITextPanel<LocalizedText> _connectButton;
+ 	private UITextPanel<LocalizedText> _backButton;

@@ -25,18 +25,7 @@
  	{
  		int num = 0;
  		int num2 = 5;
-@@ -22,8 +_,10 @@
- 		int num4 = 50;
- 		int num5 = 450;
- 		int num6 = 20;
-+		/*
- 		if (0 == 1)
- 			num6 = (int)((float)num6 * owner.minionDamage);
-+		*/
- 
- 		for (int i = 0; i < Main.maxNPCs; i++) {
- 			if (num >= num2)
-@@ -46,6 +_,9 @@
+@@ -43,6 +_,9 @@
  		}
  
  		SoundEngine.PlaySound(SoundID.NPCHit34, npcHit.Center);

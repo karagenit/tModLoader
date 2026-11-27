@@ -8,7 +8,7 @@
  using Terraria.Testing;
  
  namespace Terraria.Graphics.Light;
-@@ -170,6 +_,13 @@
+@@ -171,6 +_,13 @@
  		}
  
  		Player perspectivePlayer = Main.SceneMetrics.PerspectivePlayer;
@@ -22,7 +22,7 @@
  		if (perspectivePlayer.nightVision) {
  			workingLightMap.LightDecayThroughAir *= 1.03f;
  			workingLightMap.LightDecayThroughSolid *= 1.03f;
-@@ -192,6 +_,15 @@
+@@ -193,6 +_,15 @@
  
  		workingLightMap.LightDecayThroughAir *= Main.SceneState.airLightDecay;
  		workingLightMap.LightDecayThroughSolid *= Main.SceneState.solidLightDecay;

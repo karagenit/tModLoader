@@ -48,8 +48,8 @@
  				Color color = Lighting.GetColor(j, i);
  				if (tile.fullbrightWall())
  					color = Color.White;
-@@ -164,6 +_,9 @@
- 					if (flag3)
+@@ -165,6 +_,9 @@
+ 					if (flag4)
  						DrawOutline(TextureAssets.WallOutline.Value, new Vector2(j * 16 - (int)screenPosition.X, i * 16 - (int)screenPosition.Y + 14) + drawOffSet, new Rectangle(0, 14, 16, 2), color);
  				}
 +

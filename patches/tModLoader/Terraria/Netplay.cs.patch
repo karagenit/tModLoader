@@ -1,7 +1,7 @@
 --- src/TerrariaNetCore/Terraria/Netplay.cs
 +++ src/tModLoader/Terraria/Netplay.cs
-@@ -7,8 +_,11 @@
- using NATUPNPLib;
+@@ -11,8 +_,11 @@
+ using System.Threading;
  using ReLogic.OS;
  using Terraria.Audio;
 +using Terraria.ID;
@@ -12,7 +12,16 @@
  using Terraria.Net;
  using Terraria.Net.Sockets;
  using Terraria.Social;
-@@ -92,6 +_,12 @@
+@@ -68,7 +_,7 @@
+ 	public static int ListenPort = 7777;
+ 	public static bool IsListening = true;
+ 	public static bool UseUPNP = true;
+-	public static bool UseGNS = true;
++	public static bool UseGNS = false; // TML: crossplay (GNS/UDP) is not supported, the GNS_Wrapper native library is not shipped
+ 	public static bool SaveOnServerExit = true;
+ 	public static volatile bool Disconnect;
+ 	public static volatile bool ClientLoopThreadRunning;
+@@ -126,6 +_,12 @@
  		Main.ActiveNetDiagnosticsUI.Reset();
  	}
  
@@ -25,16 +34,16 @@
  	public static void ResetSections()
  	{
  		RemoteClient[] clients = Clients;
-@@ -180,7 +_,7 @@
- 		if (num != -1) {
- 			Clients[num].Reset();
- 			Clients[num].Socket = client;
--			Console.WriteLine(Language.GetTextValue("Net.ClientConnecting", client.GetRemoteAddress()));
-+			Logging.ServerConsoleLine(Language.GetTextValue("Net.ClientConnecting", client.GetRemoteAddress()));
- 			return;
- 		}
- 
-@@ -203,7 +_,7 @@
+@@ -191,7 +_,7 @@
+ 				Clients[num].Reset();
+ 				Clients[num].Activate(result);
+ 				NetMessage.SendData(163, num);
+-				Console.WriteLine(Language.GetTextValue("Net.ClientConnecting", result.GetRemoteAddress()));
++				Logging.ServerConsoleLine(Language.GetTextValue("Net.ClientConnecting", result.GetRemoteAddress()));
+ 			}
+ 			else {
+ 				KickClient(result, NetworkText.FromKey("CLI.ServerIsFull"));
+@@ -213,7 +_,7 @@
  		writer.Write((byte)2);
  		kickMessage.Serialize(writer);
  		if (Main.dedServ)
@@ -43,34 +52,16 @@
  
  		int num = (int)writer.BaseStream.Position;
  		writer.BaseStream.Position = position;
-@@ -299,8 +_,16 @@
- 					if (!Clients[i].Kicked && !Clients[i].IsAnnouncementCompleted)
- 						Console.WriteLine(Language.GetTextValue("Net.ClientLostConnection", Clients[i].Socket.GetRemoteAddress()));
- 
-+					// TML: Re-order to prevent RemoteClient.Reset from re-instantiating the player before
-+					//      execution ends up in PlayerLoader.PlayerDisconnect, which would invoke the hook
-+					//      with useless Player/ModPlayer data.
-+					//      Set the RemoteClient.State to 0 so SyncOnePlayer will still treat them as disconnected.
-+					/*
- 					Clients[i].Reset();
-+					*/
-+					Clients[i].State = 0;
- 					NetMessage.SyncDisconnectedPlayer(i);
-+					Clients[i].Reset();
- 				}
- 			}
- 			else if (Clients[i].IsConnected()) {
-@@ -308,9 +_,6 @@
- 				if (Clients[i].State == 10)
- 					num++;
- 			}
--			else if (Clients[i].IsActive) {
--				Clients[i].PendingTermination = true;
--			}
+@@ -343,7 +_,7 @@
+ 				return;
  		}
  
- 		HasFullyConnectedClients = num != 0;
-@@ -396,6 +_,12 @@
+-		Console.WriteLine(Language.GetTextValue("Net.ServerAutoShutdown"));
++		Logging.ServerConsoleLine(Language.GetTextValue("Net.ServerAutoShutdown"));
+ 		Disconnect = true;
+ 	}
+ 
+@@ -553,6 +_,12 @@
  
  	private static void ClientLoopSetup(RemoteAddress address)
  	{
@@ -83,7 +74,7 @@
  		Connection.ResetSpecialFlags();
  		ResetNetDiag();
  		Main.ServerSideCharacter = false;
-@@ -412,7 +_,7 @@
+@@ -569,7 +_,7 @@
  		Disconnect = false;
  		NetMessage.buffer[256].Reset();
  		Connection = new RemoteServer {
@@ -92,8 +83,8 @@
  		};
  
  		Main.menuMode = 14;
-@@ -438,6 +_,24 @@
- 						Ping.Reset();
+@@ -595,6 +_,24 @@
+ 						Terraria.Net.Ping.Reset();
  					}
  
 +					if (Connection.State == 1 && ModNet.NetReloadActive && Main.netMode == 0) {
@@ -117,7 +108,7 @@
  					if (Connection.State == 2 && num != Connection.State)
  						Main.statusText = Language.GetTextValue("Net.SendingPlayerData");
  
-@@ -457,6 +_,9 @@
+@@ -614,6 +_,9 @@
  						Main.cloudAlpha = Main.maxRaining;
  						Main.ToggleGameplayUpdates(state: false);
  						WorldGen.clearWorld();
@@ -127,9 +118,9 @@
  						if (Main.mapEnabled)
  							Main.Map.Load();
  					}
-@@ -506,6 +_,11 @@
- 			}
+@@ -664,6 +_,11 @@
  
+ 			GNS_API.Shutdown();
  			if (!Main.gameMenu) {
 +				// This is only called in case of kicks and other sudden disconnects.
 +				// The more common (client) call to this is in Main.SaveAndQuitCallback.
@@ -139,7 +130,7 @@
  				Main.menuMode = 14;
  				Main.gameMenu = true;
  				Main.SwitchNetMode(0);
-@@ -515,6 +_,7 @@
+@@ -673,6 +_,7 @@
  				Main.ActivePlayerFileData.StopPlayTimer();
  				SoundEngine.StopTrackedSounds();
  				MapHelper.noStatusText = false;
@@ -147,8 +138,8 @@
  			}
  
  			if (Main.menuMode == 15 && Main.statusText == Language.GetTextValue("Net.LostConnection"))
-@@ -571,7 +_,29 @@
- 		thread.Start();
+@@ -787,7 +_,29 @@
+ 		}
  	}
  
 +	/*

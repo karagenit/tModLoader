@@ -138,8 +138,8 @@
 +		/// Projectiles in this set skip damage calculations in <see cref="Projectile.Damage_EVP(Rectangle)"/>
 +		/// <para/> This is used by <see cref="Explosives"/>, <see cref="Landmine"/>, and <see cref="TNTBarrel"/>.
 +		/// </summary>
- 		public static bool[] SkipDamage_EVP = Factory.CreateBoolSet(108, 164, 1002);
- 		public static bool[] IsABombWithFuse = Factory.CreateBoolSet(28, 37, 516, 519, 910, 911, 1086, 1087, 906, 905, 904, 903, 773, 1077, 75, 102, 681, 470, 29, 637);
+ 		public static bool[] SkipDamage_EVP = Factory.CreateBoolSet(108, 164, 1002, 1136);
+ 		public static bool[] IsABombWithFuse = Factory.CreateBoolSet(28, 1136, 37, 516, 519, 910, 911, 1086, 1087, 906, 905, 904, 903, 773, 1077, 75, 102, 681, 470, 29, 637);
 +
 +		/// <summary>
 +		/// The lifetime of a yoyo projectile (<see cref="ProjAIStyleID.Yoyo"/>) in seconds.
@@ -349,10 +349,10 @@
  
  	public const short None = 0;
  	public const short WoodenArrowFriendly = 1;
-@@ -1533,5 +_,6 @@
- 	public const short CrystalShardMelee = 1134;
+@@ -1534,5 +_,6 @@
  	public const short KrakenWave = 1135;
- 	public static readonly short Count = 1136;
+ 	public const short TrapBomb = 1136;
+ 	public static readonly short Count = 1137;
 +	/// <inheritdoc cref="IdDictionary"/>
  	public static readonly IdDictionary Search = IdDictionary.Create<ProjectileID, short>();
  }

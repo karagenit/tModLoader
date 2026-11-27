@@ -266,13 +266,14 @@
 +	/// <br/> Defaults to <see langword="false"/>.
 +	/// </summary>
  	public bool minion;
+-	public int minionSlots;
 +
 +	/// <summary>
 +	/// Set to 1f on a minion to count it towards the minion limit of the summoning player (Optic Staff summons two minions at once with 0.5f each)
 +	/// <br/> Make sure to set <see cref="ItemID.Sets.StaffMinionSlotsRequired"/> for the minion summoning item to the sum of the minionSlots values of the minions that will be spawned.
 +	/// <br/> Defaults to 0f.
 +	/// </summary>
- 	public float minionSlots;
++	public float minionSlots; // TML: vanilla 1.4.6 changed this to int, kept as float for fractional minion slots.
 +	/// <summary>
 +	/// A number indicating the order of minions. Minion AI code typically uses this value to determine a suitable idle position that results in minions lining up neatly in relation to the player without bunching up.
 +	/// </summary>
@@ -519,7 +520,7 @@
  	public static bool IsNPCIndexImmuneToProjectileType(int projectileType, int npcIndex) => perIDStaticNPCImmunity[projectileType, npcIndex] <= Main.GameUpdateCount;
  
  	public static void ResetNPCSlotData(int npcIndex)
-@@ -493,8 +_,46 @@
+@@ -502,8 +_,46 @@
  		type = typeToChangeInto;
  	}
  
@@ -566,8 +567,8 @@
  		ownerHitCheckDistance = 1000f;
  		counterweight = false;
  		sentry = false;
-@@ -546,9 +_,11 @@
- 		minionSlots = 0f;
+@@ -555,9 +_,11 @@
+ 		minionSlots = 0;
  		soundDelay = 0;
  		spriteDirection = 1;
 +		/*
@@ -578,7 +579,7 @@
  		ownerHitCheck = false;
  		drawLayer = 0;
  		usesOwnerLight = false;
-@@ -598,7 +_,9 @@
+@@ -607,7 +_,9 @@
  		tagEffectType = 0;
  		bonusTagDamage = 0;
  		armorPenetration = 0;
@@ -588,7 +589,7 @@
  		hostileDamageScaling = GameDifficultyData.HostileProjectileDamageMultiplier;
  		frame = 0;
  		frameCounter = 0;
-@@ -2379,6 +_,7 @@
+@@ -2406,6 +_,7 @@
  			trap = true;
  		}
  		else if (type == 189) {
@@ -596,7 +597,7 @@
  			width = 8;
  			height = 8;
  			aiStyle = 36;
-@@ -9560,26 +_,39 @@
+@@ -9608,26 +_,39 @@
  			// Dummy block for a nice patch.
  		}
  		else {
@@ -638,7 +639,7 @@
  	{
  		friendly = true;
  		usesLocalNPCImmunity = true;
-@@ -9614,6 +_,9 @@
+@@ -9662,6 +_,9 @@
  		extraUpdates = 1;
  		usesLocalNPCImmunity = true;
  		localNPCHitCooldown = -1;
@@ -648,7 +649,7 @@
  	}
  
  	public void DefaultToSpear()
-@@ -9698,6 +_,10 @@
+@@ -9746,6 +_,10 @@
  		return result;
  	}
  
@@ -656,10 +657,10 @@
 +	/// <inheritdoc cref="Projectile.NewProjectile(IEntitySource, float, float, float, float, int, int, float, int, float, float, float, NewProjectileModifier)"/>
 +	/// <br/><br/>This particular overload uses a Vector2 instead of X and Y to determine the actual spawn position and a Vector2 to dictate the initial velocity.
 +	/// </summary>
- 	public static int NewProjectile(IEntitySource spawnSource, Vector2 position, Vector2 velocity, int Type, int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, NewProjectileModifier modifer = null) => NewProjectile(spawnSource, position.X, position.Y, velocity.X, velocity.Y, Type, Damage, KnockBack, Owner, ai0, ai1, ai2, modifer);
+ 	public static int NewProjectile(IEntitySource spawnSource, Vector2 position, Vector2 velocity, int Type, int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, NewProjectileModifier modifier = null) => NewProjectile(spawnSource, position.X, position.Y, velocity.X, velocity.Y, Type, Damage, KnockBack, Owner, ai0, ai1, ai2, modifier);
  
  	public static int FindOldestProjectile()
-@@ -9747,6 +_,26 @@
+@@ -9806,6 +_,26 @@
  		return projectile;
  	}
  
@@ -683,10 +684,10 @@
 +	/// <param name="ai2"></param>
 +	/// <param name="modifer">An optional delegate invoked with the spawned <see cref="Projectile"/> right before it is returned, allowing final adjustments before it is synced over the network, similar to <see cref="ModProjectile.OnSpawn(IEntitySource)"/>. Vanilla uses can be seen in the <see cref="NewProjectileModifiers"/> class.</param>
 +	/// <returns>The index of the spawned projectile within <see cref="Main.projectile"/>.</returns>
- 	public static int NewProjectile(IEntitySource spawnSource, float X, float Y, float SpeedX, float SpeedY, int Type, int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, NewProjectileModifier modifer = null)
+ 	public static int NewProjectile(IEntitySource spawnSource, float X, float Y, float SpeedX, float SpeedY, int Type, int Damage, float KnockBack, int Owner = -1, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, NewProjectileModifier modifier = null)
  	{
  		if (Owner == -1)
-@@ -9774,7 +_,9 @@
+@@ -9833,7 +_,9 @@
  
  		projectile.honeyWet = Collision.honey;
  		projectile.shimmerWet = Collision.shimmer;
@@ -696,30 +697,25 @@
  		projectile.FindBannerToAssociateTo(spawnSource);
  		projectile.TrackMinionSpawnSource(spawnSource);
  		if (projectile.aiStyle == 1) {
-@@ -9930,13 +_,22 @@
- 
- 			if (Type == 777 || Type == 781 || Type == 794 || Type == 797 || Type == 800 || Type == 785 || Type == 788 || Type == 791 || Type == 903 || Type == 904 || Type == 905 || Type == 906 || Type == 910 || Type == 911)
- 				projectile.timeLeft = 180;
-+
-+			// Copied from 1.3, moved from Shoot context to OnSpawn with matching logic
-+			if (Main.netMode != NetmodeID.Server) {
-+				Player throwingPlayer = Main.player[Owner];
-+				if (throwingPlayer.AnyThrownCostReduction && throwingPlayer.HeldItem.CountsAsClass(DamageClass.Throwing) && spawnSource is EntitySource_ItemUse_WithAmmo)
-+					projectile.noDropItem = true;
-+			}
+@@ -9897,8 +_,17 @@
+ 			}
  		}
  
- 		if (Type == 249)
- 			projectile.frame = Main.rand.Next(5);
- 
- 		projectile.FinalizeProjectile();
-+		projectile.ApplyStatsFromSource(spawnSource); // Moved from before FindBannerToAssociateTo, so the snapshot includes stats set by FinalizeProjectile
- 		modifer?.Invoke(projectile);
++		// Copied from 1.3, moved from Shoot context to OnSpawn with matching logic (was inside the Type == 777 block in 1.4.5.8)
++		if (Main.netMode != NetmodeID.Server) {
++			Player throwingPlayer = Main.player[Owner];
++			if (throwingPlayer.AnyThrownCostReduction && throwingPlayer.HeldItem.CountsAsClass(DamageClass.Throwing) && spawnSource is EntitySource_ItemUse_WithAmmo)
++				projectile.noDropItem = true;
++		}
++
+ 		projectile.SetDefaultsFromSpawnValues();
++		projectile.ApplyStatsFromSource(spawnSource); // Moved from before FindBannerToAssociateTo, so the snapshot includes stats set by SetDefaultsFromSpawnValues
+ 		modifier?.Invoke(projectile);
 +		ProjectileLoader.OnSpawn(projectile, spawnSource);
  		NetMessage.SendData(27, -1, -1, null, projectile.whoAmI);
- 		if (Owner == Main.myPlayer)
- 			Main.player[Owner].TryUpdateChannel(projectile);
-@@ -9954,26 +_,84 @@
+ 		Main.player[Owner].TryUpdateChannel(projectile);
+ 		return projectile.whoAmI;
+@@ -9914,25 +_,83 @@
  		}
  	}
  
@@ -781,7 +777,6 @@
  		}
  
  		if (spawnSource is EntitySource_Parent entitySource_Parent && entitySource_Parent.Entity is Projectile projectile) {
- 			tagEffectType = projectile.tagEffectType;
  			bonusTagDamage += projectile.bonusTagDamage;
 +			/*
  			armorPenetration += projectile.armorPenetration;
@@ -806,7 +801,7 @@
  		}
  	}
  
-@@ -10949,6 +_,16 @@
+@@ -10908,6 +_,16 @@
  
  	private bool Damage_CanDealDamage()
  	{
@@ -823,7 +818,7 @@
  		if (type == 18 || type == 72 || type == 86 || type == 87 || aiStyle == 31 || aiStyle == 32 || type == 226 || type == 378 || type == 613 || type == 650 || type == 882 || type == 888 || type == 895 || type == 896 || (type == 434 && localAI[0] != 0f) || type == 439 || type == 444 || (type == 451 && ((int)(ai[0] - 1f) / penetrate == 0 || ai[1] < 5f) && ai[0] != 0f) || type == 500 || type == 653 || type == 1018 || type == 1056 || type == 1090 || type == 460 || type == 633 || type == 600 || type == 601 || type == 602 || type == 535 || (type == 631 && localAI[1] == 0f) || (type == 537 && localAI[0] <= 30f) || type == 651 || (type == 188 && localAI[0] < 5f) || (aiStyle == 137 && ai[0] != 0f) || aiStyle == 138 || (type == 261 && velocity.Length() < 1.5f) || (type == 818 && ai[0] < 1f) || type == 831 || type == 970 || (type == 833 && ai[0] == 4f) || (type == 834 && ai[0] == 4f) || (type == 835 && ai[0] == 4f) || (type == 281 && ai[0] == -3f) || ((type == 598 || type == 636 || type == 614 || type == 971 || type == 975 || type == 1024) && ai[0] == 1f) || (type == 923 && localAI[0] <= 60f) || (type == 919 && localAI[0] <= 60f) || (aiStyle == 15 && ai[0] == 0f && localAI[1] <= 12f) || type == 861 || (type >= 511 && type <= 513 && ai[1] >= 1f) || (type == 1128 && ai[1] >= 1f) || type == 1007 || (type == 1022 && ai[2] > 0f) || (type == 1092 && ai[0] <= 1f))
  			return false;
  
-@@ -11072,6 +_,16 @@
+@@ -11031,6 +_,16 @@
  
  	private void Damage_PVE_Inner(int victimIndex, NPC targetNPC, Rectangle projRectangle, float projectileSpecificDamageMultiplier, int[] immuneArray, ref bool keepIterating)
  	{
@@ -840,7 +835,7 @@
  		bool ownedBySomeone = OwnedBySomeone;
  		bool flag = !targetNPC.friendly;
  		flag |= type == 318;
-@@ -11084,10 +_,15 @@
+@@ -11043,10 +_,15 @@
  		if (type == 1091 && targetNPC.type == 548)
  			flag2 = false;
  
@@ -856,7 +851,7 @@
  		if (!(owner < 0 || targetNPC.immune[owner] == 0 || flag3))
  			return;
  
-@@ -11101,6 +_,9 @@
+@@ -11060,6 +_,9 @@
  		else if (targetNPC.immortal && npcProj)
  			flag4 = true;
  
@@ -866,7 +861,7 @@
  		if (flag4 || (!targetNPC.noTileCollide && ownerHitCheck && !CanHitWithMeleeWeapon(targetNPC)))
  			return;
  
-@@ -11264,14 +_,25 @@
+@@ -11223,14 +_,25 @@
  		if (type == 604)
  			Main.player[owner].Counterweight(targetNPC.Center, damage, knockBack);
  
@@ -894,7 +889,7 @@
  				break;
  			case 877:
  			case 878:
-@@ -11282,10 +_,15 @@
+@@ -11241,10 +_,15 @@
  				if (ai[0] < 2f)
  					num5 = 0f;
  				break;
@@ -911,7 +906,7 @@
  			float value = (scale - 1f) * 100f;
  			value = Utils.Clamp(value, 0f, 50f);
  			num7 = (int)((float)num7 * (1f + value * 0.23f));
-@@ -11316,9 +_,10 @@
+@@ -11275,9 +_,10 @@
  		}
  
  		if (ownedBySomeone && type == 189 && Main.player[owner].strongBees)
@@ -923,7 +918,7 @@
  			int num13 = 0;
  			if (bonusCritChance > 0)
  				num13 += bonusCritChance;
-@@ -11326,11 +_,21 @@
+@@ -11285,11 +_,21 @@
  			if (melee && Main.rand.Next(1, 101) <= Main.player[owner].meleeCrit + num13)
  				crit = true;
  
@@ -945,7 +940,7 @@
  
  			Main.player[owner].TryConsumingTimerCrit(targetNPC.Hitbox, ref crit);
  			int num14 = type;
-@@ -11345,7 +_,12 @@
+@@ -11304,7 +_,12 @@
  			}
  		}
  
@@ -958,7 +953,7 @@
  		TagDamageChanges changes = TagDamageChanges.None;
  		Main.player[owner].TagEffectStack.ModifyHit(this, targetNPC, ref changes);
  		if (changes.AddProjectileTagDamage) {
-@@ -11359,6 +_,13 @@
+@@ -11314,6 +_,13 @@
  			if (changes.Crit.HasValue)
  				crit = changes.Crit.Value;
  		}
@@ -972,7 +967,7 @@
  
  		if (ownedBySomeone && (sentry || (type >= 0 && ProjectileID.Sets.SentryShot[type])) && Main.player[owner].accGolemSentryBackpack && Main.rand.Next(10) == 0)
  			crit = true;
-@@ -11366,7 +_,11 @@
+@@ -11321,7 +_,11 @@
  		if (type == 1130)
  			crit = false;
  
@@ -984,10 +979,10 @@
  		if (type == 1002)
  			dmg /= 2;
  
-@@ -11506,13 +_,16 @@
- 				num21 = 1f / targetNPC.knockBackResist;
+@@ -11461,13 +_,16 @@
+ 				num18 = 1f / targetNPC.knockBackResist;
  
- 			knockBack = 4f * num21;
+ 			knockBack = 4f * num18;
 +			/*
  			num5 = knockBack;
 +			*/
@@ -1002,7 +997,7 @@
  			if (timeLeft > 3)
  				timeLeft = 3;
  
-@@ -11694,7 +_,10 @@
+@@ -11649,7 +_,10 @@
  		}
  
  		if (Main.netMode != 2 && ownedBySomeone && Main.player[owner].GetBannerBuffEffect(targetNPC, out var effect))
@@ -1013,7 +1008,7 @@
  
  		if (Main.expertMode) {
  			if ((type == 30 || type == 397 || type == 517 || type == 28 || type == 37 || type == 516 || type == 29 || type == 470 || type == 637 || type == 1086 || type == 1087 || type == 108 || type == 281 || type == 588 || type == 519 || type == 773 || type == 183 || type == 181 || type == 566 || type == 1002) && targetNPC.type >= 13 && targetNPC.type <= 15)
-@@ -11704,7 +_,7 @@
+@@ -11659,7 +_,7 @@
  				dmg = (int)((double)dmg * 0.75);
  		}
  
@@ -1022,28 +1017,31 @@
  			dmg = (int)((float)dmg * 0.75f);
  
  		if (type == 497 && penetrate != 1) {
-@@ -11737,14 +_,17 @@
+@@ -11692,14 +_,20 @@
  		}
  
  		if ((melee || ranged) && ownedBySomeone && Main.player[owner].accPyroclast)
--			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref dmg, 1);
-+			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref modifiers, 1);
+-			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6178), this, owner, targetNPC, ref dmg, 1);
++			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6178), this, owner, targetNPC, ref modifiers, 1);
  
  		if (ranged && ownedBySomeone && Main.player[owner].accSnappingStone)
--			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref dmg, 0);
-+			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref modifiers, 0);
+-			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6167), this, owner, targetNPC, ref dmg, 0);
++			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6167), this, owner, targetNPC, ref modifiers, 0);
  
  		if (changes.AddProjectileTagDamage && ownedBySomeone && Main.player[owner].accArmletOfRuin)
--			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref dmg, 2);
-+			TryMakingSnappingStoneStrike(GetProjectileSource_FromThis(), this, owner, targetNPC, ref modifiers, 2);
+-			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6179), this, owner, targetNPC, ref dmg, 2);
++			TryMakingSnappingStoneStrike(GetProjectileSource_OnHit_AccessoryProc(targetNPC, 6179), this, owner, targetNPC, ref modifiers, 2);
  
++		// TML: hoisted above the gotos (definite assignment through goto labels). num37 = direction in vanilla 1.4.6.1.
++		int? num37 = null;
++		NPC.HitInfo strike = default;
 +		// Essentially, the following block is moved to execute later on.
 +		goto VanillaOnHitEffectsWhipsEnd;
 +		VanillaOnHitEffectsWhipsStart: // Whip Multihit penalty and Crystal dart retargeting are OnHit effects
  		switch (type) {
  			case 294:
  				damage = (int)((double)damage * 0.9);
-@@ -11906,18 +_,26 @@
+@@ -11861,18 +_,26 @@
  				netUpdate = true;
  			}
  		}
@@ -1072,7 +1070,7 @@
  		SpawnHitVisuals(targetNPC);
  		StatusNPC(victimIndex);
  		if (ownedBySomeone && tagEffectType > 0)
-@@ -11929,12 +_,15 @@
+@@ -11884,12 +_,14 @@
  		if (ProjectileID.Sets.ImmediatelyUpdatesNPCBuffFlags[type])
  			targetNPC.UpdateNPC_BuffSetFlags(lowerBuffTime: false);
  
@@ -1083,28 +1081,27 @@
  		}
 +		goto PostModifyHit;
  
--		int num40 = direction;
+-		int num37 = direction;
 +		VanillaOnHitEffectsEnd:
-+		int? num40 = null; //direction;
  		switch (type) {
  			case 697:
  			case 699:
-@@ -11961,12 +_,33 @@
+@@ -11916,12 +_,33 @@
  		if (type == 22)
- 			num40 = ((Main.player[owner].Center.X < targetNPC.Center.X) ? 1 : (-1));
+ 			num37 = ((Main.player[owner].Center.X < targetNPC.Center.X) ? 1 : (-1));
  
 +		modifiers.ScalingArmorPenetration += armorPenetrationPercent;
 +		modifiers.Knockback *= num5; // Apply vanilla knockback adjustments as a multiplier.
 +		modifiers.TargetDamageMultiplier *= dmg / 1000;
-+		if (num40 != null)
-+			modifiers.HitDirectionOverride = num40;
++		if (num37 != null)
++			modifiers.HitDirectionOverride = num37;
 +
 +		// TML: Moved up from below
 +		if (ownedBySomeone && (melee || ProjectileID.Sets.IsAWhip[type]) && Main.player[owner].meleeEnchant == 6)
 +			modifiers.TargetDamageMultiplier *= Player.GetNanoFlaskDamageBoost();
 +
-+		var strike = modifiers.ToHitInfo(damage, crit, knockBack, damageVariation: true, luck: ownedBySomeone ? Main.player[owner].luck : 0);
-+		num40 = strike.HitDirection;
++		strike = modifiers.ToHitInfo(damage, crit, knockBack, damageVariation: true, luck: ownedBySomeone ? Main.player[owner].luck : 0);
++		num37 = strike.HitDirection;
 +
 +		goto VanillaOnHitEffectsStart;
 +
@@ -1122,39 +1119,39 @@
 +			*/
  
  			if (Main.player[owner].meleeEnchant == 7)
- 				NewProjectile(GetProjectileSource_FromThis(), targetNPC.Center.X, targetNPC.Center.Y, targetNPC.velocity.X, targetNPC.velocity.Y, 289, 0, 0f, owner);
-@@ -11976,14 +_,20 @@
+ 				NewProjectile(GetProjectileSource_OnHit(targetNPC, 8), targetNPC.Center.X, targetNPC.Center.Y, targetNPC.velocity.X, targetNPC.velocity.Y, 289, 0, 0f, owner);
+@@ -11931,14 +_,20 @@
  		NPCDamageTracker.SetSourceForNextHit(targetNPC, PlayerNPCHitSource.FromProjectile(type));
  		Invariant.Assert(Main.netMode == 0 || owner == Main.myPlayer, "Cannot simulate someone else's projectile dealing damage. ({0})", this);
  		Invariant.Assert(Main.netMode != 1 || ownedBySomeone, "Must be ownedBySomeone to do damage on client. ({0})", this);
 +		/*
- 		int num41 = targetNPC.StrikeNPC(dmg, num5, num40, crit, fromNet: false, ownedBySomeone ? owner : 255);
+ 		int num38 = targetNPC.StrikeNPC(dmg, num5, num37, crit, fromNet: false, ownedBySomeone ? owner : 255);
 +		*/
-+		int num41 = targetNPC.StrikeNPC(strike, noPlayerInteraction: !ownedBySomeone);
++		int num38 = targetNPC.StrikeNPC(strike, noPlayerInteraction: !ownedBySomeone);
  		if (ownedBySomeone && attempt.DidNPCDie())
  			Main.player[owner].OnKillNPC(ref attempt, this);
  
 -		if (ownedBySomeone && Main.player[owner].accDreamCatcher)
 +		if (ownedBySomeone && Main.player[owner].accDreamCatcher && !targetNPC.HideStrikeDamage)
- 			Main.player[owner].addDPS(num41);
+ 			Main.player[owner].addDPS(num38);
  
 +		/*
  		Main.player[owner].TagEffectStack.OnHit(this, targetNPC, num7);
 +		*/
 +		Main.player[owner].TagEffectStack.OnHit(this, targetNPC, strike);
- 		flag10 |= num41 > 0 && targetNPC.lifeMax > 5 && friendly && !hostile && aiStyle != 59;
+ 		flag10 |= num38 > 0 && targetNPC.lifeMax > 5 && friendly && !hostile && aiStyle != 59;
  		if (arrow && ownedBySomeone && aiStyle == 1) {
  			AI_001_Features aI_001_Features = new AI_001_Features(ai[2]);
-@@ -12386,6 +_,8 @@
+@@ -12341,6 +_,8 @@
  		if (type == 710)
  			BetsySharpnel(victimIndex);
  
-+		CombinedHooks.OnHitNPCWithProj(this, targetNPC, strike, num41); // see addDPS above for patch context of num28
++		CombinedHooks.OnHitNPCWithProj(this, targetNPC, strike, num38); // see addDPS above for patch context of num28
 +
  		if (penetrate > 0 && type != 317 && type != 866) {
  			if (type == 357)
  				damage = (int)((double)damage * 0.8);
-@@ -12436,8 +_,10 @@
+@@ -12391,8 +_,10 @@
  			localAI[0] += 1f;
  		}
  		else if (type == 611) {
@@ -1167,7 +1164,7 @@
  
  			localAI[1] = 4f;
  		}
-@@ -12511,7 +_,10 @@
+@@ -12466,7 +_,10 @@
  			Main.player[owner].SetMeleeHitCooldown(victimIndex, Main.player[owner].itemAnimation);
  	}
  
@@ -1178,7 +1175,7 @@
  	{
  		bool flag = snappingType == 0;
  		bool flag2 = snappingType == 1;
-@@ -12525,17 +_,26 @@
+@@ -12480,18 +_,27 @@
  		int num3 = 40;
  		int num4 = 10;
  		if (flag) {
@@ -1190,7 +1187,8 @@
  		else if (flag2) {
  			num = 45;
 +			/*
- 			num = (int)((float)num * Main.player[owner].meleeDamage);
+ 			float num5 = Math.Max(Main.player[owner].meleeDamage, Main.player[owner].rangedDamage);
+ 			num = (int)((float)num * num5);
 +			*/
 +			num = (int)Main.player[owner].GetTotalDamage(DamageClass.Melee).ApplyTo(num);
  			num3 = 70;
@@ -1205,38 +1203,38 @@
  			num3 = 150;
  			maxRange = 400f;
  		}
-@@ -12596,18 +_,30 @@
- 		int num13 = num2 - num7;
- 		int num14 = num3 + num4 * num13;
+@@ -12552,18 +_,30 @@
+ 		int num14 = num2 - num8;
+ 		int num15 = num3 + num4 * num14;
  		if (flag) {
 +			/*
- 			num14 = (int)((float)num14 * Main.player[owner].rangedDamage);
+ 			num15 = (int)((float)num15 * Main.player[owner].rangedDamage);
 +			*/
-+			num14 = (int)Main.player[owner].GetTotalDamage(DamageClass.Ranged).ApplyTo(num14);
++			num15 = (int)Main.player[owner].GetTotalDamage(DamageClass.Ranged).ApplyTo(num15);
  		}
  		else if (flag2) {
 +			/*
- 			float num15 = Math.Max(Main.player[owner].meleeDamage, Main.player[owner].rangedDamage);
- 			num14 = (int)((float)num14 * num15);
+ 			float num16 = Math.Max(Main.player[owner].meleeDamage, Main.player[owner].rangedDamage);
+ 			num15 = (int)((float)num15 * num16);
 +			*/
-+			num14 = (int)Math.Max(Main.player[owner].GetTotalDamage(DamageClass.Melee).ApplyTo(num14), Main.player[owner].GetTotalDamage(DamageClass.Ranged).ApplyTo(num14));
++			num15 = (int)Math.Max(Main.player[owner].GetTotalDamage(DamageClass.Melee).ApplyTo(num15), Main.player[owner].GetTotalDamage(DamageClass.Ranged).ApplyTo(num15));
  			victim.AddBuff(323, 180);
  		}
  		else if (flag3) {
 +			/*
- 			num14 = (int)((float)num14 * Main.player[owner].minionDamage);
+ 			num15 = (int)((float)num15 * Main.player[owner].minionDamage);
 +			*/
-+			num14 = (int)Main.player[owner].GetTotalDamage(DamageClass.Summon).ApplyTo(num14);
++			num15 = (int)Main.player[owner].GetTotalDamage(DamageClass.Summon).ApplyTo(num15);
  		}
  
 +		/*
- 		dmg += num14;
+ 		dmg += num15;
 +		*/
-+		modifiers.FlatBonusDamage += num14;
++		modifiers.FlatBonusDamage += num15;
  		if (flag)
  			SoundEngine.PlaySound(SoundID.Item30, Main.player[owner].MountedCenter, 0.3f, 0.08f);
  		else if (flag2)
-@@ -12788,6 +_,9 @@
+@@ -12744,6 +_,9 @@
  			if (!flag || !Colliding(projRectangle, player.getRect()))
  				continue;
  
@@ -1246,7 +1244,7 @@
  			if (aiStyle == 3 && !ProjectileID.Sets.IsAPhaseblade[type]) {
  				if (ai[0] == 0f) {
  					velocity.X = 0f - velocity.X;
-@@ -12797,7 +_,7 @@
+@@ -12753,7 +_,7 @@
  
  				ai[0] = 1f;
  			}
@@ -1255,7 +1253,7 @@
  				if (timeLeft > 3)
  					timeLeft = 3;
  
-@@ -12825,13 +_,22 @@
+@@ -12781,13 +_,22 @@
  				timeLeft = 1;
  
  			bool flag2 = false;
@@ -1279,7 +1277,7 @@
  
  			if ((type == 476 || type == 950) && !npcProj) {
  				float x = Main.player[owner].Center.X;
-@@ -12945,10 +_,14 @@
+@@ -12901,10 +_,14 @@
  			case 919:
  			case 923:
  			case 924:
@@ -1294,7 +1292,7 @@
  		int myPlayer = Main.myPlayer;
  		bool flag = Main.player[myPlayer].active && !Main.player[myPlayer].dead && (!Main.player[myPlayer].immune || num != ImmunityCooldownID.General);
  		if (flag && type == 281)
-@@ -12966,6 +_,9 @@
+@@ -12922,6 +_,9 @@
  		if (!flag || !Colliding(projRectangle, Main.player[myPlayer].getRect()))
  			return;
  
@@ -1304,7 +1302,7 @@
  		int num2 = direction;
  		num2 = ((!(Main.player[myPlayer].position.X + (float)(Main.player[myPlayer].width / 2) < position.X + (float)(width / 2))) ? 1 : (-1));
  		bool flag2 = Main.player[myPlayer].CanParryAgainst(Main.player[myPlayer].Hitbox, base.Hitbox, velocity);
-@@ -12977,15 +_,19 @@
+@@ -12933,15 +_,19 @@
  		if (!flag2) {
  			SpawnHitVisuals(Main.player[myPlayer]);
  			int num3 = Main.DamageVar(damage, 0f - Main.player[owner].luck);
@@ -1324,7 +1322,7 @@
  			int num4 = 2;
  			num3 *= num4;
  			if (Main.player[myPlayer].deadMansSweater && trap) {
-@@ -13009,7 +_,8 @@
+@@ -12965,7 +_,8 @@
  			if (ProjectileID.Sets.IsAGravestone[type])
  				playerIndex = (int)ai[0];
  
@@ -1334,7 +1332,7 @@
  				StatusPlayer(Main.player[myPlayer]);
  
  			if (trap) {
-@@ -13148,10 +_,17 @@
+@@ -13104,10 +_,17 @@
  		if (type == 967)
  			result.Inflate(10, 10);
  
@@ -1353,7 +1351,7 @@
  	{
  		Player localPlayer = Main.LocalPlayer;
  		if (!localPlayer.active || localPlayer.dead || localPlayer.immune || (ownerHitCheck && !CanHitWithMeleeWeapon(localPlayer)) || !Colliding(base.Hitbox, localPlayer.Hitbox))
-@@ -13176,7 +_,8 @@
+@@ -13132,7 +_,8 @@
  
  		bool dodgeable = IsDamageDodgeable();
  		PlayerDeathReason damageSource = PlayerDeathReason.ByProjectile(playerIndex, whoAmI);
@@ -1363,7 +1361,7 @@
  			StatusPlayer(localPlayer);
  
  		if (trap) {
-@@ -13232,7 +_,7 @@
+@@ -13188,7 +_,7 @@
  		return num;
  	}
  
@@ -1372,7 +1370,7 @@
  	{
  		ParticleOrchestrator.RequestParticleSpawn(clientOnly: false, ParticleOrchestraType.BlackLightningHit, new ParticleOrchestraSettings {
  			PositionInWorld = position
-@@ -13293,10 +_,10 @@
+@@ -13249,10 +_,10 @@
  		NewProjectile(GetProjectileSource_FromThis(), vector2, vector, 700, damage, 0f, owner);
  	}
  
@@ -1385,7 +1383,7 @@
  	}
  
  	private void CutTiles()
-@@ -13400,13 +_,19 @@
+@@ -13356,13 +_,19 @@
  					WorldGen.KillTile(i, j);
  					if (Main.netMode != 0)
  						NetMessage.SendData(17, -1, -1, null, 0, i, j);
@@ -1405,7 +1403,7 @@
  		if (type == 1041 && ai[0] < 0f)
  			return false;
  
-@@ -13430,6 +_,7 @@
+@@ -13386,6 +_,7 @@
  
  				vector2.Y /= num;
  				float num2 = 55f;
@@ -1413,7 +1411,7 @@
  				CollisionVisualizer.VisualizeElipticalLine(mountedCenter, vector, num2, 1f, num, needsCanHitCheck: false);
  				return vector2.Length() <= num2;
  			}
-@@ -13860,6 +_,9 @@
+@@ -13816,6 +_,9 @@
  			}
  		}
  
@@ -1423,7 +1421,7 @@
  		CollisionVisualizer.VisualizeRects(myRect, targetRect, needsCanHitCheck: false);
  		if (myRect.Intersects(targetRect))
  			return true;
-@@ -14569,9 +_,18 @@
+@@ -14524,9 +_,18 @@
  			if (!noEnchantmentVisuals)
  				UpdateEnchantmentVisuals();
  
@@ -1442,7 +1440,7 @@
  			}
  
  			if (minion && numUpdates == -1 && type != 625 && type != 628) {
-@@ -14624,7 +_,9 @@
+@@ -14559,7 +_,9 @@
  			if (soundDelay > 0)
  				soundDelay--;
  
@@ -1452,7 +1450,7 @@
  			if (active)
  				AI();
  
-@@ -15025,6 +_,9 @@
+@@ -14960,6 +_,9 @@
  				else {
  					netUpdate2 = true;
  				}
@@ -1462,7 +1460,7 @@
  			}
  
  			if (netSpam > 0)
-@@ -15034,7 +_,9 @@
+@@ -14969,7 +_,9 @@
  		if (active && Main.netMode == 2)
  			RecheckSectionsForSkippedUpdates();
  
@@ -1472,7 +1470,7 @@
  	}
  
  	private void RecheckSectionsForSkippedUpdates()
-@@ -15095,9 +_,16 @@
+@@ -15030,9 +_,16 @@
  		}
  	}
  
@@ -1489,7 +1487,7 @@
  		if (player.frostBurn && (melee || ranged) && friendly && !hostile && !noEnchantments && Main.rand.Next(2 * (1 + extraUpdates)) == 0) {
  			int num = Dust.NewDust(boxPosition, boxWidth, boxHeight, 135, velocity.X * 0.2f + (float)(direction * 3), velocity.Y * 0.2f, 100, default(Color), 2f);
  			Main.dust[num].noGravity = true;
-@@ -15323,9 +_,23 @@
+@@ -15258,9 +_,23 @@
  
  			Vector2 lastVelocity = velocity;
  			GetCollisionParams(out var resizeAnchor, out var colWidth, out var colHeight);
@@ -1513,7 +1511,7 @@
  					if (type >= 736 && type <= 738) {
  						velocity = Collision.TileCollision(position, velocity, width, height, flag6, flag6);
  					}
-@@ -15339,6 +_,7 @@
+@@ -15274,6 +_,7 @@
  					else {
  						velocity = Collision.TileCollision(position, velocity, width, height, flag6, flag6);
  					}
@@ -1521,7 +1519,7 @@
  				}
  				else if (wet) {
  					if (shimmerWet) {
-@@ -15637,6 +_,7 @@
+@@ -15572,6 +_,7 @@
  					}
  				}
  
@@ -1529,7 +1527,7 @@
  				if (type == 663 || type == 665 || type == 667 || type == 677 || type == 678 || type == 679 || type == 691 || type == 692 || type == 693 || type == 688 || type == 689 || type == 690) {
  					position += velocity;
  					velocity = Vector2.Zero;
-@@ -16987,7 +_,7 @@
+@@ -16922,7 +_,7 @@
  								}
  							}
  						}
@@ -1538,7 +1536,7 @@
  							if (type == 1088) {
  								Point plantPoint = Point.Zero;
  								if (AI_016_CanAcornPlant(out plantPoint))
-@@ -17564,6 +_,9 @@
+@@ -17499,6 +_,9 @@
  		if (aiStyle == 4 || aiStyle == 38 || aiStyle == 84 || aiStyle == 148 || (aiStyle == 7 && ai[0] == 2f) || ((type == 440 || type == 449 || type == 606) && ai[1] == 1f) || (aiStyle == 93 && ai[0] < 0f) || type == 540 || type == 756 || type == 818 || type == 856 || type == 961 || type == 1041 || type == 1125 || type == 933 || type == 1100 || ProjectileID.Sets.IsAGolfBall[type])
  			return;
  
@@ -1548,7 +1546,7 @@
  		if (wet)
  			position += wetVelocity;
  		else
-@@ -17816,6 +_,9 @@
+@@ -17751,6 +_,9 @@
  
  		fisher.junk = Main.rand.Next(50) > fisher.fishingLevel && Main.rand.Next(50) > fisher.fishingLevel && fisher.waterTilesCount < fisher.waterNeededToFish;
  		FishingCheck_RollDropLevels(fisher.fishingLevel, out fisher.common, out fisher.uncommon, out fisher.rare, out fisher.veryrare, out fisher.legendary, out fisher.crate);
@@ -1558,7 +1556,7 @@
  		FishingCheck_ProbeForQuestFish(ref fisher);
  		PrepareFishingContext(context, fisher);
  		return true;
-@@ -17826,11 +_,27 @@
+@@ -17761,11 +_,27 @@
  		FishingCheck_RollEnemySpawns(ref fisher);
  		FishingCheck_RollItemDrop(ref fisher);
  		bool flag = false;
@@ -1587,7 +1585,7 @@
  				SoundEngine.PlaySound(SoundID.SonarPotion, position);
  			}
  
-@@ -17843,7 +_,7 @@
+@@ -17778,7 +_,7 @@
  		}
  
  		if (fisher.rolledEnemySpawn > 0) {
@@ -1596,7 +1594,7 @@
  				PopupText.AssignAsSonarText(PopupText.NewText(PopupTextContext.SonarAlert, fisher.rolledEnemySpawn, base.Center, stay5TimesLonger: false));
  				SoundEngine.PlaySound(SoundID.SonarPotion, position);
  			}
-@@ -18924,6 +_,9 @@
+@@ -18859,6 +_,9 @@
  					return 0.77f;
  				case "Random":
  					return Main.rand.NextFloat();
@@ -1606,7 +1604,7 @@
  			}
  		}
  
-@@ -19070,6 +_,8 @@
+@@ -19018,6 +_,8 @@
  		}
  	}
  
@@ -1615,9 +1613,9 @@
  	public static IEntitySource GetNoneSource() => null;
  	public IEntitySource GetNPCSource_FromThis() => new EntitySource_Parent(this);
  	public IEntitySource GetProjectileSource_FromThis() => new EntitySource_Parent(this);
-@@ -19078,6 +_,22 @@
- 	public IEntitySource GetProjectileSource_OnHit(Entity victim, int projectileSourceId) => new EntitySource_OnHit_ByProjectileSourceID(this, victim, projectileSourceId);
- 	public IEntitySource GetItemSource_OnHit(Entity victim, int itemSourceId) => new EntitySource_OnHit_ByItemSourceID(this, victim, itemSourceId);
+@@ -19028,6 +_,24 @@
+ 	public IEntitySource GetProjectileSource_OnHit_AccessoryProc(Entity victim, int itemType) => new EntitySource_OnHit_AccessoryProc(this, victim, itemType);
+ 	public IEntitySource GetProjectileSource_OnHit_TagProc(Entity victim, UniqueTagEffect tagEffect) => new EntitySource_OnHit_TagProc(this, victim, tagEffect);
  	public static IEntitySource InheritSource(Projectile projectile) => projectile?.GetProjectileSource_FromThis();
 +	*/
 +
@@ -1629,6 +1627,8 @@
 +	internal IEntitySource GetItemSource_DropAsItem() => GetSource_DropAsItem();
 +	internal IEntitySource GetProjectileSource_OnHit(Entity victim, int projectileSourceId) => GetSource_OnHit(victim, context: ProjectileSourceID.ToContextString(projectileSourceId));
 +	internal IEntitySource GetItemSource_OnHit(Entity victim, int itemSourceId) => GetSource_OnHit(victim, ItemSourceID.ToContextString(itemSourceId));
++	internal IEntitySource GetProjectileSource_OnHit_AccessoryProc(Entity victim, int itemType) => new EntitySource_OnHit_AccessoryProc(this, victim, itemType);
++	internal IEntitySource GetProjectileSource_OnHit_TagProc(Entity victim, UniqueTagEffect tagEffect) => new EntitySource_OnHit_TagProc(this, victim, tagEffect);
 +
 +	internal static IEntitySource GetNoneSource() => GetSource_None();
 +
@@ -1638,7 +1638,7 @@
  
  	private void AI_152_SuperStarSlash()
  	{
-@@ -19187,6 +_,9 @@
+@@ -19137,6 +_,9 @@
  		tileCollide = false;
  	}
  
@@ -1648,7 +1648,7 @@
  	public void Resize(int newWidth, int newHeight)
  	{
  		position = base.Center;
-@@ -19228,7 +_,7 @@
+@@ -19178,7 +_,7 @@
  			velocity.X *= 1.1f;
  			velocity.X = Utils.Clamp(velocity.X, -14f, 14f);
  		}
@@ -1657,7 +1657,7 @@
  			int num = (int)(base.Center.X / 16f);
  			int num2 = (int)(position.Y / 16f);
  			if (WorldGen.InWorld(num, num2) && Main.tile[num, num2] != null && Main.tile[num, num2].liquid == byte.MaxValue && Main.tile[num, num2].shimmer() && WorldGen.InWorld(num, num2 - 1) && Main.tile[num, num2 - 1] != null && Main.tile[num, num2 - 1].liquid > 0 && Main.tile[num, num2 - 1].shimmer()) {
-@@ -19302,7 +_,7 @@
+@@ -19252,7 +_,7 @@
  				timeLeft -= 20;
  			}
  		}
@@ -1666,7 +1666,7 @@
  			if (timeLeft > 3000)
  				timeLeft -= 60;
  
-@@ -19381,7 +_,16 @@
+@@ -19331,7 +_,16 @@
  		if ((uint)(pose2 - 4) <= 4u)
  			flag = true;
  
@@ -1683,7 +1683,7 @@
  		switch (num) {
  			default:
  				botherDrawing = false;
-@@ -19887,10 +_,18 @@
+@@ -19843,10 +_,18 @@
  					botherDrawing = false;
  				break;
  		}
@@ -1702,34 +1702,34 @@
  		if (aiStyle == 1) {
  			AI_001();
  		}
-@@ -20775,7 +_,7 @@
+@@ -20727,7 +_,7 @@
  							treeHeightAddon = 15;
  
- 						Tile tile = Main.tile[num58, num59];
+ 						Tile tile = Main.tile[num57, num58];
 -						if (tile.type >= 0 && tile.type < TileID.Count && TileID.Sets.CommonSapling[tile.type]) {
 +						if (tile.type >= 0 && TileID.Sets.CommonSapling[tile.type]) {
- 							if (Main.remixWorld && num59 >= (int)Main.worldSurface - 1 && num59 < Main.maxTilesY - 20)
- 								WorldGen.AttemptToGrowTreeFromSapling(num58, num59, underground: false, treeHeightAddon, ignoreWalls: true);
+ 							if (Main.remixWorld && num58 >= (int)Main.worldSurface - 1 && num58 < Main.maxTilesY - 20)
+ 								WorldGen.AttemptToGrowTreeFromSapling(num57, num58, underground: false, treeHeightAddon, ignoreWalls: true);
  
-@@ -27937,7 +_,7 @@
- 					int num786 = (int)base.Center.Y / 16;
- 					for (int num787 = num785 - num784; num787 <= num785 + num784; num787++) {
- 						for (int num788 = num786 - num784; num788 <= num786 + num784; num788++) {
--							if (Main.rand.Next(4) == 0 && new Vector2(num785 - num787, num786 - num788).Length() < (float)num784 && num787 > 0 && num787 < Main.maxTilesX - 1 && num788 > 0 && num788 < Main.maxTilesY - 1 && Main.tile[num787, num788] != null && Main.tile[num787, num788].active() && Main.IsTileSpelunkable(Main.tile[num787, num788])) {
-+							if (Main.rand.Next(4) == 0 && new Vector2(num785 - num787, num786 - num788).Length() < (float)num784 && num787 > 0 && num787 < Main.maxTilesX - 1 && num788 > 0 && num788 < Main.maxTilesY - 1 && Main.tile[num787, num788] != null && Main.tile[num787, num788].active() && Main.IsTileSpelunkable(num787, num788)) {
- 								int num789 = Dust.NewDust(new Vector2(num787 * 16, num788 * 16), 16, 16, 204, 0f, 0f, 150, default(Color), 0.3f);
- 								Main.dust[num789].fadeIn = 0.75f;
- 								Dust dust2 = Main.dust[num789];
-@@ -30613,7 +_,7 @@
- 					for (int num948 = num946 - num945; num948 <= num946 + num945; num948++) {
- 						for (int num949 = num947 - num945; num949 <= num947 + num945; num949++) {
- 							int num950 = Main.rand.Next(8);
--							if (num950 < 4 && new Vector2(num946 - num948, num947 - num949).Length() < (float)num945 && Main.tile[num948, num949] != null && Main.tile[num948, num949].active() && Main.IsTileSpelunkable(Main.tile[num948, num949])) {
-+							if (num950 < 4 && new Vector2(num946 - num948, num947 - num949).Length() < (float)num945 && Main.tile[num948, num949] != null && Main.tile[num948, num949].active() && Main.IsTileSpelunkable(num948, num949)) {
- 								float num951 = Distance(new Vector2(num948 * 16 + 8, num949 * 16 + 8));
- 								if (num951 < num944 || num944 == -1f) {
- 									num944 = num951;
-@@ -35358,8 +_,11 @@
+@@ -27892,7 +_,7 @@
+ 					int num785 = (int)base.Center.Y / 16;
+ 					for (int num786 = num784 - num783; num786 <= num784 + num783; num786++) {
+ 						for (int num787 = num785 - num783; num787 <= num785 + num783; num787++) {
+-							if (Main.rand.Next(4) == 0 && new Vector2(num784 - num786, num785 - num787).Length() < (float)num783 && num786 > 0 && num786 < Main.maxTilesX - 1 && num787 > 0 && num787 < Main.maxTilesY - 1 && Main.tile[num786, num787] != null && Main.tile[num786, num787].active() && Main.IsTileSpelunkable(Main.tile[num786, num787])) {
++							if (Main.rand.Next(4) == 0 && new Vector2(num784 - num786, num785 - num787).Length() < (float)num783 && num786 > 0 && num786 < Main.maxTilesX - 1 && num787 > 0 && num787 < Main.maxTilesY - 1 && Main.tile[num786, num787] != null && Main.tile[num786, num787].active() && Main.IsTileSpelunkable(num786, num787)) {
+ 								int num788 = Dust.NewDust(new Vector2(num786 * 16, num787 * 16), 16, 16, 204, 0f, 0f, 150, default(Color), 0.3f);
+ 								Main.dust[num788].fadeIn = 0.75f;
+ 								Dust dust2 = Main.dust[num788];
+@@ -30568,7 +_,7 @@
+ 					for (int num947 = num945 - num944; num947 <= num945 + num944; num947++) {
+ 						for (int num948 = num946 - num944; num948 <= num946 + num944; num948++) {
+ 							int num949 = Main.rand.Next(8);
+-							if (num949 < 4 && new Vector2(num945 - num947, num946 - num948).Length() < (float)num944 && Main.tile[num947, num948] != null && Main.tile[num947, num948].active() && Main.IsTileSpelunkable(Main.tile[num947, num948])) {
++							if (num949 < 4 && new Vector2(num945 - num947, num946 - num948).Length() < (float)num944 && Main.tile[num947, num948] != null && Main.tile[num947, num948].active() && Main.IsTileSpelunkable(num947, num948)) {
+ 								float num950 = Distance(new Vector2(num947 * 16 + 8, num948 * 16 + 8));
+ 								if (num950 < num943 || num943 == -1f) {
+ 									num943 = num950;
+@@ -35319,8 +_,11 @@
  				NetMessage.SendData(32, -1, -1, null, chestIndex, num);
  		}
  
@@ -1742,7 +1742,7 @@
  	}
  
  	private void AI_111_DryadsWard()
-@@ -36037,7 +_,7 @@
+@@ -35998,7 +_,7 @@
  				if (!IsTileSolidForImpact(tileSafely) || IsTileSolidForImpact(Framing.GetTileSafely(i, k - 1)))
  					continue;
  
@@ -1751,7 +1751,7 @@
  				for (int l = 0; l < num4; l++) {
  					Dust obj = Main.dust[WorldGen.KillTile_MakeTileDust(i, k, tileSafely)];
  					obj.velocity.Y -= 3f + (float)num2 * 1f;
-@@ -36116,7 +_,7 @@
+@@ -36077,7 +_,7 @@
  	{
  		if (localAI[0] == 0f) {
  			if (type == 984) {
@@ -1760,7 +1760,7 @@
  				if (soundEffectInstance != null)
  					soundEffectInstance.Volume *= 0.65f;
  			}
-@@ -36353,7 +_,7 @@
+@@ -36314,7 +_,7 @@
  	{
  		if (soundDelay == 0) {
  			soundDelay = -1;
@@ -1769,7 +1769,7 @@
  			if (soundEffectInstance != null)
  				soundEffectInstance.Volume *= 0.15f * ai[0];
  		}
-@@ -36735,7 +_,7 @@
+@@ -36696,7 +_,7 @@
  		}
  
  		if (flag) {
@@ -1778,11 +1778,11 @@
  			localAI[0] = 1f;
  		}
  	}
-@@ -37775,8 +_,14 @@
+@@ -37754,8 +_,14 @@
  				break;
  		}
  
-+		float spinVisualDistance = 30f;
++		float spinVisualDistance = num15; // TML: was 30f. Vanilla 1.4.6 now sets per-flail spin distances in num15.
 +		ProjectileLoader.FlailStats(this, ref num, ref num2, ref num3, ref num4, ref num5, ref num6, ref num7, ref num14, ref spinVisualDistance);
 +
 +		/*
@@ -1793,7 +1793,7 @@
  		num2 *= num16;
  		num8 *= num16;
  		num9 *= num16;
-@@ -37837,7 +_,7 @@
+@@ -37816,7 +_,7 @@
  				if (vector6.Y * player.gravDir > 0f)
  					vector6.Y *= 0.5f;
  
@@ -1802,7 +1802,7 @@
  				velocity = Vector2.Zero;
  				localNPCHitCooldown = num12;
  				break;
-@@ -38168,7 +_,10 @@
+@@ -38147,7 +_,10 @@
  			}
  		}
  		else if (ai[0] == 1f) {
@@ -1813,7 +1813,7 @@
  			float num5 = 14f / meleeSpeed;
  			float num6 = 0.9f / meleeSpeed;
  			float num7 = 300f / meleeSpeed;
-@@ -38420,7 +_,7 @@
+@@ -38399,7 +_,7 @@
  
  					if (flag3) {
  						bool flag4 = false;
@@ -1822,7 +1822,7 @@
  							int num3 = damage;
  							position = base.Center;
  							int num4 = 0;
-@@ -39352,6 +_,15 @@
+@@ -39331,6 +_,15 @@
  		return result;
  	}
  
@@ -1838,7 +1838,7 @@
  	public int FindTargetWithLineOfSight(float maxRange = 800f, ICollection<int> ignoreTargets = null) => FindTargetWithLineOfSight(this, maxRange, ignoreTargets);
  
  	public static int FindTargetWithLineOfSight(Entity targeter, float maxRange = 800f, ICollection<int> ignoreTargets = null)
-@@ -39881,7 +_,10 @@
+@@ -39860,7 +_,10 @@
  				break;
  		}
  
@@ -1849,7 +1849,7 @@
  		float num7 = num3 + num4 * num2;
  		float num8 = num5 + num6 * num2;
  		float f = velocity.ToRotation();
-@@ -40078,7 +_,7 @@
+@@ -40057,7 +_,7 @@
  			ai[1] += 1f;
  		}
  
@@ -1858,7 +1858,7 @@
  			Kill();
  
  		rotation = (float)Math.Atan2(velocity.Y, velocity.X) + 2.355f;
-@@ -40343,10 +_,16 @@
+@@ -40322,10 +_,16 @@
  			Kill();
  	}
  
@@ -1875,9 +1875,9 @@
 -		ai[1] = 0f;
 +			ai[1] = 0f;
  		alpha = 255;
- 		if (type == 28 || type == 37 || type == 516 || type == 519) {
+ 		if (type == 28 || type == 1136 || type == 37 || type == 516 || type == 519) {
  			Resize(128, 128);
-@@ -40408,6 +_,7 @@
+@@ -40387,6 +_,7 @@
  			Resize(200, 200);
  			knockBack = 10f;
  		}
@@ -1885,7 +1885,7 @@
  	}
  
  	private bool AI_016_CanAcornPlant(out Point plantPoint)
-@@ -41704,9 +_,20 @@
+@@ -41684,9 +_,20 @@
  		if (proj.isAPreviewDisplayDoll)
  			timeToFlyOut = 60f;
  
@@ -1906,7 +1906,7 @@
  		segments = 20;
  		rangeMultiplier = 1f;
  		switch (proj.type) {
-@@ -41771,8 +_,10 @@
+@@ -41751,8 +_,10 @@
  			case 1035:
  				segments = 30;
  				rangeMultiplier *= 2.2f;
@@ -1917,7 +1917,7 @@
  				break;
  		}
  	}
-@@ -45408,6 +_,9 @@
+@@ -45388,6 +_,9 @@
  				if (num3 > (float)num9)
  					ai[0] = 1f;
  			}
@@ -1927,7 +1927,7 @@
  
  			Vector2 vector3 = base.Center - new Vector2(5f);
  			Vector2 vector4 = base.Center + new Vector2(5f);
-@@ -45442,7 +_,8 @@
+@@ -45422,7 +_,8 @@
  						continue;
  
  					Tile theTile = Main.tile[i, j];
@@ -1937,7 +1937,7 @@
  						continue;
  
  					if (Main.player[owner].grapCount < 10) {
-@@ -45475,6 +_,8 @@
+@@ -45455,6 +_,8 @@
  					if (type >= 646 && type <= 649)
  						num17 = 4;
  
@@ -1946,7 +1946,7 @@
  					for (int k = 0; k < 1000; k++) {
  						if (Main.projectile[k].active && Main.projectile[k].owner == owner && ((Main.projectile[k].aiStyle == 7 && Main.projectile[k].ai[0] == 2f) || k == whoAmI)) {
  							if (Main.projectile[k].timeLeft < num16) {
-@@ -45552,6 +_,8 @@
+@@ -45532,6 +_,8 @@
  			if (type == 332)
  				num18 = 17f;
  
@@ -1955,7 +1955,7 @@
  			if (num3 < 24f)
  				Kill();
  
-@@ -45567,7 +_,8 @@
+@@ -45547,7 +_,8 @@
  				Main.tile[point3.X, point3.Y] = new Tile();
  
  			bool flag = true;
@@ -1965,7 +1965,7 @@
  				flag = false;
  
  			if (flag) {
-@@ -45580,7 +_,7 @@
+@@ -45560,7 +_,7 @@
  		}
  	}
  
@@ -1974,7 +1974,7 @@
  	{
  		if (!theTile.nactive())
  			return false;
-@@ -45591,6 +_,15 @@
+@@ -45571,6 +_,15 @@
  		return Main.tileSolid[theTile.type] | (theTile.type == 314) | (type == 865 && TileID.Sets.IsATreeTrunk[theTile.type]) | (type == 865 && theTile.type == 323);
  	}
  
@@ -1990,7 +1990,7 @@
  	private void AI_147_Celeb2Rocket()
  	{
  		int num = 0;
-@@ -45773,7 +_,7 @@
+@@ -45753,7 +_,7 @@
  			return;
  		}
  
@@ -1999,7 +1999,7 @@
  		if (localAI[0] == 0f && Main.netMode != 2) {
  			localAI[0] = 1f;
  			if ((double)Main.LocalPlayer.position.Y < Main.worldSurface * 16.0)
-@@ -46081,7 +_,7 @@
+@@ -46061,7 +_,7 @@
  					if (tileSafely2.active() && Main.tileSolid[tileSafely2.type] && !Main.tileSolidTop[tileSafely2.type])
  						continue;
  
@@ -2008,7 +2008,7 @@
  					for (int l = 0; l < num4; l++) {
  						Dust obj = Main.dust[WorldGen.KillTile_MakeTileDust(j, k, tileSafely)];
  						obj.velocity.Y -= 3f + (float)num3 * 1.5f;
-@@ -46515,6 +_,9 @@
+@@ -46495,6 +_,9 @@
  			item.stack = stack2;
  		}
  
@@ -2018,7 +2018,7 @@
  		thePlayer.QuickSpawnItem(new EntitySource_FishedOut(this), item);
  	}
  
-@@ -56505,7 +_,7 @@
+@@ -56485,7 +_,7 @@
  			}
  
  			if (flag && Main.myPlayer == owner) {
@@ -2027,7 +2027,7 @@
  					float num8 = player.inventory[player.selectedItem].shootSpeed * scale;
  					Vector2 vector3 = vector;
  					Vector2 value = Main.screenPosition + new Vector2(Main.mouseX, Main.mouseY) - vector3;
-@@ -56744,7 +_,7 @@
+@@ -56724,7 +_,7 @@
  
  			if (flag5 && Main.myPlayer == owner) {
  				bool flag6 = false;
@@ -2036,7 +2036,7 @@
  				if (player.channel && flag6 && !player.noItems && !player.CCed) {
  					if ((int)ai[0] == 180) {
  						Vector2 center = base.Center;
-@@ -56803,7 +_,11 @@
+@@ -56783,7 +_,11 @@
  			if (ai[0] > 120f)
  				num37 = 5f;
  
@@ -2048,7 +2048,7 @@
  			ai[0] += 1f;
  			ai[1] += 1f;
  			bool flag8 = false;
-@@ -56855,7 +_,7 @@
+@@ -56835,7 +_,7 @@
  
  			if (flag9 && Main.myPlayer == owner) {
  				bool flag10 = false;
@@ -2057,7 +2057,7 @@
  				if (player.channel && flag10 && !player.noItems && !player.CCed) {
  					if (ai[0] == 1f) {
  						Vector2 center2 = base.Center;
-@@ -57820,7 +_,11 @@
+@@ -57800,7 +_,11 @@
  				localAI[0] += (float)Main.rand.Next(10, 31) * 0.1f;
  
  			float num = localAI[0] / 60f;
@@ -2069,7 +2069,7 @@
  			float num2 = ProjectileID.Sets.YoyosLifeTimeMultiplier[type];
  			if (Main.player[Main.myPlayer].yoyoString && num2 > 0f)
  				num2 *= 1.5f;
-@@ -57940,12 +_,23 @@
+@@ -57920,12 +_,23 @@
  		if (Main.player[owner].yoyoString)
  			num11 = num11 * 1.25f + 30f;
  
@@ -2093,7 +2093,7 @@
  		num10 = 5f + num9 / 2f;
  		if (flag)
  			num10 += 20f;
-@@ -58640,7 +_,7 @@
+@@ -58620,7 +_,7 @@
  				if (tileSafely2.active() && Main.tileSolid[tileSafely2.type] && !Main.tileSolidTop[tileSafely2.type])
  					continue;
  
@@ -2102,7 +2102,7 @@
  				for (int k = 0; k < num5; k++) {
  					Dust obj = Main.dust[WorldGen.KillTile_MakeTileDust(i, j, tileSafely)];
  					obj.velocity.Y -= 3f + (float)num4 * 1.5f;
-@@ -59348,7 +_,10 @@
+@@ -59327,7 +_,10 @@
  				_ = localAI[1];
  				_ = 1f;
  				int num11 = NewProjectile(GetProjectileSource_FromThis(), vector3 + new Vector2(num6 * -15, -60f), new Vector2(num6, 0f), 698, num5, 0f, owner);
@@ -2113,7 +2113,7 @@
  				SoundEngine.PlayTrackedSound(SoundID.DD2_MonkStaffGroundImpact, base.Center);
  			}
  		}
-@@ -59470,7 +_,7 @@
+@@ -59449,7 +_,7 @@
  			Kill();
  	}
  
@@ -2122,7 +2122,7 @@
  	{
  		causedShockwaves = false;
  		int num = 4;
-@@ -59487,7 +_,7 @@
+@@ -59466,7 +_,7 @@
  				if (tileSafely2.active() && Main.tileSolid[tileSafely2.type] && !Main.tileSolidTop[tileSafely2.type])
  					continue;
  
@@ -2131,7 +2131,7 @@
  				for (int k = 0; k < num2; k++) {
  					Dust obj = Main.dust[WorldGen.KillTile_MakeTileDust(i, j, tileSafely)];
  					obj.velocity.Y -= 3f + (float)num * 1.5f;
-@@ -59528,7 +_,7 @@
+@@ -59507,7 +_,7 @@
  				if (tileSafely2.active() && Main.tileSolid[tileSafely2.type] && !Main.tileSolidTop[tileSafely2.type])
  					continue;
  
@@ -2140,7 +2140,7 @@
  				for (int k = 0; k < num4; k++) {
  					Dust obj = Main.dust[WorldGen.KillTile_MakeTileDust(i, j, tileSafely)];
  					obj.velocity.Y -= 3f + (float)num2 * 1.5f;
-@@ -59592,7 +_,7 @@
+@@ -59571,7 +_,7 @@
  		}
  	}
  
@@ -2149,7 +2149,7 @@
  	{
  		Vector2 spinningpoint = new Vector2(7f, 0f);
  		Vector2 vector = new Vector2(1f, 0.7f);
-@@ -60339,14 +_,19 @@
+@@ -60349,14 +_,19 @@
  		int num = timeLeft;
  		timeLeft = 0;
  		bool flag = true;
@@ -2171,7 +2171,7 @@
  			bool flag3 = ai[0] != 1000f;
  			if (flag3 && type != 1088) {
  				PrepareBombToBlow();
-@@ -61660,7 +_,14 @@
+@@ -61664,7 +_,14 @@
  
  		if (Main.myPlayer == owner && bobber) {
  			PopupText.ClearSonarText();
@@ -2187,7 +2187,7 @@
  				AI_061_FishingBobber_GiveItemToPlayer(Main.player[owner], (int)ai[1]);
  
  			ai[1] = 0f;
-@@ -61799,8 +_,10 @@
+@@ -61803,8 +_,10 @@
  				}
  			}
  
@@ -2200,17 +2200,17 @@
  		}
  		else if (type == 614) {
  			for (int num178 = 0; num178 < 10; num178++) {
-@@ -66779,6 +_,9 @@
+@@ -66778,6 +_,9 @@
+ 
  		if (flag2)
  			Kill_ExplodeTiles();
- 
 +		// Patch note: End of Projectile.Kill().
 +		ProjectileLoader.OnKill(this, num);
 +
- 		active = false;
  	}
  
-@@ -66887,6 +_,16 @@
+ 	private void Kill_ExplodeTiles()
+@@ -66885,6 +_,16 @@
  				int num16 = (int)(position.Y + (float)(height / 2)) / 16;
  				int num17 = 0;
  				int num18 = 2;
@@ -2227,7 +2227,7 @@
  				if (type == 109) {
  					num17 = 147;
  					num18 = 0;
-@@ -66983,6 +_,7 @@
+@@ -66981,6 +_,7 @@
  					num17 = 495;
  					num18 = 4090;
  				}
@@ -2235,7 +2235,7 @@
  
  				if (type == 1081 && !WorldGen.SolidTile3(num15, num16 + 1)) {
  					if (WorldGen.SolidTile3(num15 - 1, num16 + 1) && !Main.tile[num15 - 1, num16].active())
-@@ -67919,6 +_,10 @@
+@@ -67917,6 +_,10 @@
  
  	private void DropGeodeGems()
  	{
@@ -2246,7 +2246,7 @@
  		List<int> list = new List<int> {
  			181,
  			182,
-@@ -67978,6 +_,9 @@
+@@ -67976,6 +_,9 @@
  		}
  	}
  
@@ -2256,7 +2256,7 @@
  	public bool ShouldWallExplode(Vector2 compareSpot, int radius, int minI, int maxI, int minJ, int maxJ)
  	{
  		bool result = false;
-@@ -68003,12 +_,16 @@
+@@ -68001,12 +_,16 @@
  
  	public bool CanExplodeTile(int x, int y, bool explodeHardmodeOres = false)
  	{
@@ -2273,7 +2273,7 @@
  		switch (Main.tile[x, y].type) {
  			case 26:
  			case 88:
-@@ -68027,6 +_,7 @@
+@@ -68025,6 +_,7 @@
  			case 504:
  			case 685:
  			case 686:
@@ -2281,7 +2281,7 @@
  				return false;
  			case 107:
  			case 108:
-@@ -68061,6 +_,9 @@
+@@ -68059,6 +_,9 @@
  		return true;
  	}
  
@@ -2291,7 +2291,7 @@
  	public void ExplodeTiles(Vector2 compareSpot, int radius, int minI, int maxI, int minJ, int maxJ, bool wallSplode, bool explodeHardmodeOres = false)
  	{
  		AchievementsHelper.CurrentlyMining = true;
-@@ -68089,6 +_,10 @@
+@@ -68087,6 +_,10 @@
  					for (int l = j - 1; l <= j + 1; l++) {
  						Tile tile2 = Main.tile[k, l];
  						if (tile2 != null && tile2.wall != 0 && tile2.wall != 350) {
@@ -2302,7 +2302,7 @@
  							WorldGen.KillWall(k, l);
  							if (tile2.wall == 0 && Main.netMode != 0)
  								NetMessage.SendData(17, -1, -1, null, 2, k, l);
-@@ -68162,6 +_,8 @@
+@@ -68160,6 +_,8 @@
  
  	public bool IsInteractable()
  	{
@@ -2311,7 +2311,7 @@
  		switch (type) {
  			case 525:
  			case 734:
-@@ -68177,10 +_,14 @@
+@@ -68175,10 +_,14 @@
  			default:
  				return false;
  		}

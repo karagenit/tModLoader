@@ -195,7 +195,7 @@
  					if (tile == null)
  						tile = new Tile();
  
-@@ -154,9 +_,16 @@
+@@ -155,9 +_,16 @@
  					if (ptr2->IsHalfBrick && !ptr2->HasLiquid)
  						ptr2->Type = ptr2[-1].Type;
  
@@ -212,7 +212,7 @@
  
  			ptr2 = ptr;
  			float num2 = 0f;
-@@ -167,7 +_,7 @@
+@@ -168,7 +_,7 @@
  					if (ptr2->IsHalfBrick && ptr2[-1].HasLiquid) {
  						num2 = 1f;
  					}
@@ -221,8 +221,8 @@
  						LiquidCache liquidCache = ptr2[-1];
  						LiquidCache liquidCache2 = ptr2[1];
  						LiquidCache liquidCache3 = ptr2[-rectangle.Height];
-@@ -214,8 +_,12 @@
- 							ptr2[num5].VisibleType = ptr2->Type;
+@@ -216,8 +_,12 @@
+ 							ptr2[num6].VisibleType = ptr2->Type;
  						}
  					}
 +					else if (ptr2->HasVisibleLiquid && ptr2->EdgeData.HasValue) { // edge water needs opacity and visibility set
@@ -235,25 +235,25 @@
  						ptr2->VisibleLiquidLevel = 1f;
  						ptr2->HasVisibleLiquid = false;
  					}
-@@ -229,6 +_,7 @@
- 				ptr2 += 10;
+@@ -249,8 +_,8 @@
+ 						float num11 = 0f;
+ 						float num12 = 1f;
+ 						float visibleLiquidLevel = ptr2->VisibleLiquidLevel;
+-						if (!liquidCache.HasVisibleLiquid)
+-							num11 += liquidCache2.VisibleLiquidLevel * (1f - visibleLiquidLevel);
++						if (!liquidCache.HasVisibleLiquid || (liquidCache.EdgeData.HasValue && !liquidCache.IsHalfBrick)) // half bricks are meant to leak water below them creating waterfalls and providing 'surface tension' through the bottom
++							num11 += (liquidCache2.EdgeData.HasValue ? 1f : liquidCache2.VisibleLiquidLevel) * (1f - visibleLiquidLevel); // this is just creating the same effect as if the tile above didn't have any edgedata, (empty tiles have VisibleLiquidLevel = 1)
+ 
+ 						if (!liquidCache2.HasVisibleLiquid && !liquidCache2.IsSolid && !liquidCache2.IsHalfBrick)
+ 							num12 -= liquidCache.VisibleLiquidLevel * (1f - visibleLiquidLevel);
+@@ -302,6 +_,7 @@
+ 				ptr2 += 4;
  			}
  
 +
  			ptr2 = ptr;
  			ptr2 += num;
- 			for (int num6 = 2; num6 < rectangle.Width - 2; num6++) {
-@@ -249,8 +_,8 @@
- 						float num10 = 0f;
- 						float num11 = 1f;
- 						float visibleLiquidLevel = ptr2->VisibleLiquidLevel;
--						if (!liquidCache.HasVisibleLiquid)
--							num10 += liquidCache2.VisibleLiquidLevel * (1f - visibleLiquidLevel);
-+						if (!liquidCache.HasVisibleLiquid || (liquidCache.EdgeData.HasValue && !liquidCache.IsHalfBrick)) // half bricks are meant to leak water below them creating waterfalls and providing 'surface tension' through the bottom
-+							num10 += (liquidCache2.EdgeData.HasValue ? 1f : liquidCache2.VisibleLiquidLevel) * (1f - visibleLiquidLevel); // this is just creating the same effect as if the tile above didn't have any edgedata, (empty tiles have VisibleLiquidLevel = 1)
- 
- 						if (!liquidCache2.HasVisibleLiquid && !liquidCache2.IsSolid && !liquidCache2.IsHalfBrick)
- 							num11 -= liquidCache.VisibleLiquidLevel * (1f - visibleLiquidLevel);
+ 			for (int num13 = 2; num13 < rectangle.Width - 2; num13++) {
 @@ -322,8 +_,11 @@
  							if (ptr2->HasRightEdge)
  								ptr2->VisibleRightWall = (ptr2->RightWall * 2f + liquidCache.RightWall + liquidCache2.RightWall) * 0.25f;
@@ -269,17 +269,17 @@
  								ptr2->VisibleTopWall = (ptr2->TopWall * 2f + liquidCache3.TopWall + liquidCache4.TopWall) * 0.25f;
  
 @@ -426,7 +_,7 @@
- 								if (ptr2->IsHalfBrick && ptr2->IsSolid && num23 > 0.5f)
- 									num23 = 0.5f;
+ 								if (ptr2->IsHalfBrick && ptr2->IsSolid && num24 > 0.5f)
+ 									num24 = 0.5f;
  
 -								ptr4->IsVisible = ptr2->HasWall || !ptr2->IsHalfBrick || !ptr2->HasLiquid || !(ptr2->LiquidLevel < 1f);
 +								ptr4->IsVisible = ptr2->HasWall || !ptr2->IsHalfBrick || !ptr2->HasLiquid || !(ptr2->LiquidLevel < 1f) || ptr2->EdgeData.HasValue;
- 								ptr4->SourceRectangle = new Rectangle((int)(16f - num21 * 16f) + ptr2->FrameOffset.X, (int)(16f - num23 * 16f) + ptr2->FrameOffset.Y, (int)Math.Ceiling((num21 - num20) * 16f), (int)Math.Ceiling((num23 - num22) * 16f));
- 								ptr4->IsSurfaceLiquid = ptr2->FrameOffset.X == 16 && ptr2->FrameOffset.Y == 0 && (double)(num19 + rectangle.Y) > Main.worldSurface - 40.0;
+ 								ptr4->SourceRectangle = new Rectangle((int)(16f - num22 * 16f) + ptr2->FrameOffset.X, (int)(16f - num24 * 16f) + ptr2->FrameOffset.Y, (int)Math.Ceiling((num22 - num21) * 16f), (int)Math.Ceiling((num24 - num23) * 16f));
+ 								ptr4->IsSurfaceLiquid = ptr2->FrameOffset.X == 16 && ptr2->FrameOffset.Y == 0 && (double)(num20 + rectangle.Y) > Main.worldSurface - 40.0;
  								ptr4->Opacity = ptr2->Opacity;
 @@ -441,6 +_,11 @@
  								LiquidCache* ptr7 = ptr2 - 1;
- 								if (num19 != 2 && !ptr7->HasVisibleLiquid && !ptr7->IsSolid && !ptr7->IsHalfBrick)
+ 								if (num20 != 2 && !ptr7->HasVisibleLiquid && !ptr7->IsSolid && !ptr7->IsHalfBrick)
  									*(ptr6 - 1) = *ptr6;
 +
 +								if (ptr2->EdgeData.HasValue) { // ignore previous instructions and use custom framing from LiquidEdgeRenderer

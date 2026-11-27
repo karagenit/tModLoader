@@ -100,7 +100,7 @@
  				flag = true;
  				if (inventory[num2].stack == inventory[num2].maxStack) {
  					if (Main.netMode == 1 && Main.player[Main.myPlayer].chest > -1)
-@@ -1023,8 +_,12 @@
+@@ -1018,8 +_,12 @@
  					break;
  				}
  

@@ -152,10 +152,10 @@
  				float amount = (float)num2 / (float)stack;
 +				*/
 +				float amount = (float)numTransferred / (float)stack;
- 				position = Vector2.Lerp(worldItem.position, position, amount);
- 				velocity = Vector2.Lerp(worldItem.velocity, velocity, amount);
+ 				position = Vector2.Lerp(position, worldItem.position, amount);
+ 				velocity = Vector2.Lerp(velocity, worldItem.velocity, amount);
  				if (worldItem.stack <= 0)
-@@ -174,8 +_,9 @@
+@@ -177,8 +_,9 @@
  					continue;
  
  				Player.ItemSpaceStatus status = player.ItemSpace(this);
@@ -166,7 +166,7 @@
  					if (player.manaMagnet && (type == 184 || type == 1735 || type == 1868))
  						num4 -= (float)Item.manaGrabRange;
  
-@@ -184,6 +_,9 @@
+@@ -187,6 +_,9 @@
  
  					if (type == 4143)
  						num4 -= (float)Item.manaGrabRange;
@@ -176,7 +176,7 @@
  
  					if (num3 > num4) {
  						num3 = num4;
-@@ -264,6 +_,12 @@
+@@ -267,6 +_,12 @@
  			FindOwner();
  	}
  
@@ -189,7 +189,7 @@
  	public void MakeInstanced(Predicate<Player> shouldSpawnForPlayer, int defaultLifetimeOverride = 0)
  	{
  		if (Main.netMode != 2)
-@@ -366,6 +_,8 @@
+@@ -369,6 +_,8 @@
  		if (timeSinceItemSpawned < 2147483547)
  			timeSinceItemSpawned++;
  
@@ -198,7 +198,7 @@
  		if (grabDelayTime > 0)
  			grabDelayTime--;
  
-@@ -459,11 +_,14 @@
+@@ -462,11 +_,14 @@
  		int num = (int)base.Center.X / 16;
  		int num2 = (int)base.Center.Y / 16;
  		if (WorldGen.InWorld(num, num2) && WallID.Sets.AllowsWind[Main.tile[num, num2].wall]) {
@@ -213,7 +213,7 @@
  				int num4 = stack;
  				inner.SetDefaults(206);
  				stack = num4;
-@@ -654,6 +_,8 @@
+@@ -657,6 +_,8 @@
  
  	private void MoveInWorld(float gravity, float maxFallSpeed, ref Vector2 wetVelocity)
  	{
@@ -222,7 +222,7 @@
  		if (!shimmered && ItemID.Sets.ItemNoGravity[type]) {
  			velocity.X *= 0.95f;
  			if ((double)velocity.X < 0.1 && (double)velocity.X > -0.1)
-@@ -931,7 +_,7 @@
+@@ -934,7 +_,7 @@
  		Rectangle hitbox = base.Hitbox;
  		for (int i = 0; i < Main.maxNPCs; i++) {
  			NPC nPC = Main.npc[i];
@@ -231,7 +231,7 @@
  				flag3 = true;
  				NPC.TransformCopperSlime(i);
  				break;
-@@ -1378,7 +_,11 @@
+@@ -1381,7 +_,11 @@
  	}
  
  	public IEntitySource GetNPCSource_FromThis() => new EntitySource_Parent(this);
@@ -243,7 +243,7 @@
  
  	public static void ShimmerEffect(Vector2 shimmerPositon)
  	{
-@@ -1414,7 +_,9 @@
+@@ -1417,7 +_,9 @@
  		int decraftingRecipeIndex = ShimmerTransforms.GetDecraftingRecipeIndex(inner.GetShimmerEquivalentType(forDecrafting: true));
  		int transformToItem = ShimmerTransforms.GetTransformToItem(shimmerEquivalentType);
  		int makeNPC = inner.makeNPC;
@@ -254,7 +254,7 @@
  			switch (shimmerEquivalentType) {
  				case 72:
  					stack *= 100;
-@@ -1428,6 +_,8 @@
+@@ -1431,6 +_,8 @@
  					stack *= 1000000;
  					break;
  			}
@@ -263,7 +263,7 @@
  
  			Main.player[Main.myPlayer].AddCoinLuck(base.Center, stack);
  			NetMessage.SendData(146, -1, -1, null, 1, base.Center.X, base.Center.Y, stack);
-@@ -1439,6 +_,13 @@
+@@ -1442,6 +_,13 @@
  			inner.SetDefaults(transformToItem);
  			stack = num;
  			shimmered = true;
@@ -277,17 +277,7 @@
  		}
  		else if (type == 4986) {
  			if (NPC.unlockedSlimeRainbowSpawn)
-@@ -1490,7 +_,9 @@
- 		else if (decraftingRecipeIndex >= 0) {
- 			int num6 = inner.FindDecraftAmount();
- 			Recipe recipe = Main.recipe[decraftingRecipeIndex];
-+			/* TML: Unused, and throws for single ingredient recipes since requiredItem is a List
- 			_ = recipe.requiredItem[1].stack;
-+			*/
- 			IEnumerable<Recipe.RequiredItemEntry> enumerable = recipe.requiredItemQuickLookup;
- 			if (recipe.customShimmerResults != null) {
- 				enumerable = recipe.customShimmerResults.Select(delegate (Item item) {
-@@ -1508,12 +_,16 @@
+@@ -1510,12 +_,16 @@
  
  				int num8 = num6 * item.stack;
  				int key = (item.IsRecipeGroup ? item.RecipeGroup.DecraftItemId : item.itemIdOrRecipeGroup);

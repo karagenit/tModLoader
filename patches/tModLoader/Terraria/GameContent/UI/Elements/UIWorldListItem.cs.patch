@@ -5,7 +5,7 @@
  using Microsoft.Xna.Framework;
  using Microsoft.Xna.Framework.Graphics;
  using ReLogic.Content;
-@@ -7,12 +_,15 @@
+@@ -7,13 +_,16 @@
  using Terraria.ID;
  using Terraria.IO;
  using Terraria.Localization;
@@ -14,6 +14,7 @@
 +using Terraria.ModLoader.Config;
  using Terraria.Social;
  using Terraria.UI;
+ using Terraria.UI.Chat;
  
  namespace Terraria.GameContent.UI.Elements;
  
@@ -22,7 +23,7 @@
  {
  	private Asset<Texture2D> _dividerTexture;
  	private Asset<Texture2D> _innerPanelTexture;
-@@ -44,6 +_,9 @@
+@@ -45,6 +_,9 @@
  		_canBePlayed = canBePlayed;
  		_hasBeenPlayedByActivePlayer = hasBeenPlayedByActivePlayer;
  		_isNewlyGenerated = isNewlyGenerated;
@@ -32,7 +33,7 @@
  		LoadTextures();
  		InitializeAppearance();
  		_worldIcon = GetIconElement();
-@@ -115,6 +_,8 @@
+@@ -116,6 +_,8 @@
  			num += 24f;
  		}
  
@@ -41,7 +42,7 @@
  		UIImageButton uIImageButton5 = new UIImageButton(_buttonRenameTexture);
  		uIImageButton5.VAlign = 1f;
  		uIImageButton5.Left.Set(num, 0f);
-@@ -199,6 +_,8 @@
+@@ -200,6 +_,8 @@
  		_buttonDeleteTexture = Main.Assets.Request<Texture2D>("Images/UI/ButtonDelete");
  		_hasBeenPlayedByActivePlayerTexture = Main.Assets.Request<Texture2D>("Images/UI/IconPlayedBefore");
  		_isNewlyGeneratedTexture = Main.Assets.Request<Texture2D>("Images/UI/IconNewlyGenerated");
@@ -50,7 +51,7 @@
  	}
  
  	private void InitializeAppearance()
-@@ -246,8 +_,12 @@
+@@ -247,8 +_,12 @@
  	{
  		if (_data.IsCloudSave)
  			_buttonLabel.SetText(Language.GetTextValue("UI.MoveOffCloud"));
@@ -65,7 +66,7 @@
  	}
  
  	private void PlayMouseOver(UIMouseEvent evt, UIElement listeningElement)
-@@ -292,8 +_,15 @@
+@@ -293,8 +_,15 @@
  	{
  		if (_data.IsCloudSave)
  			_data.MoveToLocal();
@@ -82,7 +83,7 @@
  
  		((UIImageButton)evt.Target).SetImage(_data.IsCloudSave ? _buttonCloudActiveTexture : _buttonCloudInactiveTexture);
  		if (_data.IsCloudSave)
-@@ -342,6 +_,9 @@
+@@ -341,6 +_,9 @@
  			return true;
  		}
  
@@ -92,7 +93,7 @@
  		bool flag = Main.ActivePlayerFileData.Player.difficulty == 3;
  		bool flag2 = worldGameMode == 3;
  		if (flag && !flag2) {
-@@ -358,6 +_,13 @@
+@@ -357,6 +_,13 @@
  			return true;
  		}
  
@@ -106,7 +107,7 @@
  		return false;
  	}
  
-@@ -411,6 +_,9 @@
+@@ -410,6 +_,9 @@
  	{
  		if (obj is UIWorldListItem uIWorldListItem)
  			return _orderInList.CompareTo(uIWorldListItem._orderInList);

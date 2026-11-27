@@ -37,7 +37,7 @@
  		_femaleArmor = (_maleArmor = default(ArmorAssignments));
  		Click_CharClothStyle(null, null);
  		UpdateSelectedGender();
-@@ -1601,8 +_,14 @@
+@@ -1600,8 +_,14 @@
  		int num = 0;
  		byte difficulty = _player.difficulty;
  		if (difficulty == 3) {
@@ -52,7 +52,7 @@
  			_player.inventory[num].SetDefaults(6);
  			_player.inventory[num++].Prefix(-1);
  			_player.inventory[num].SetDefaults(1);
-@@ -1641,6 +_,10 @@
+@@ -1640,6 +_,10 @@
  
  		_player.savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules();
  		CreativePowerManager.Instance.ResetDataForNewPlayer(_player);

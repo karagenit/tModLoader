@@ -7,7 +7,7 @@
  public struct TagDamageChanges
  {
  	public bool AddProjectileTagDamage;
-@@ -17,3 +_,4 @@
+@@ -16,3 +_,4 @@
  		}
  	}
  }

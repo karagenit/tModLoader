@@ -73,7 +73,7 @@
  					if (item3.stack == 0) {
  						inv[_sort_itemsToSort[k]] = new Item();
  						_sort_itemsToSort.Remove(_sort_itemsToSort[k]);
-@@ -1560,6 +_,11 @@
+@@ -1556,6 +_,11 @@
  		for (int i = loopStartIndex; i < loopEndIndex; i++) {
  			Item item = inv[i];
  			if (item.stack >= 1 && item.type == itemToRefill.type && !item.favorited) {
@@ -85,7 +85,7 @@
  				int num2 = item.stack;
  				if (num2 > num)
  					num2 = num;
-@@ -1567,6 +_,8 @@
+@@ -1563,6 +_,8 @@
  				num -= num2;
  				itemToRefill.stack += num2;
  				item.stack -= num2;

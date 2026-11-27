@@ -1,27 +1,17 @@
 --- src/TerrariaNetCore/Terraria/RemoteClient.cs
 +++ src/tModLoader/Terraria/RemoteClient.cs
-@@ -2,6 +_,7 @@
+@@ -3,6 +_,7 @@
  using Microsoft.Xna.Framework;
  using Terraria.DataStructures;
  using Terraria.Localization;
 +using Terraria.ModLoader;
  using Terraria.Net.Sockets;
+ using Terraria.Testing;
  
- namespace Terraria;
-@@ -12,12 +_,19 @@
- 	public int Id;
- 	public string Name = "Anonymous";
- 	public bool IsActive;
--	public bool PendingTermination;
-+
-+	// Changed from a field into a private setter property.
-+	// Vanilla code must be changed to use SetPendingTermination instead.
-+	public bool PendingTermination { get; private set; }
- 	public bool PendingTerminationApproved;
- 	public bool Kicked;
- 	public bool IsAnnouncementCompleted;
+@@ -25,6 +_,10 @@
  	public int State;
  	public int TimeOutTimer;
+ 	private volatile int _status;
 +	/// <summary>
 +	/// Indicates if specific world sections (200 x 150 tile chunks) of the world are loaded by this client. The server will sync world sections to the client as the player visits them by calling <see cref="CheckSection"/>.
 +	/// <br/><br/> <b>Only accessible on Server!</b>
@@ -29,21 +19,21 @@
  	public bool[,] TileSections = new bool[Main.maxTilesX / 200 + 1, Main.maxTilesY / 150 + 1];
  	public uint[,] TileSectionsCheckTime = new uint[Main.maxTilesX / 200 + 1, Main.maxTilesY / 150 + 1];
  	public bool CheckingSections;
-@@ -36,6 +_,13 @@
+@@ -49,6 +_,13 @@
  
  	public static event Action<int, Point> NetSectionActivated;
  
 +	// Added by TML to log a reason for terminating clients
 +	internal void SetPendingTermination(string reason)
 +	{
-+		PendingTermination = true;
++		RequestTermination(reason);
 +		ModNet.Log(Id, "Terminating: " + reason);
 +	}
 +
  	public bool IsConnected()
  	{
- 		if (Socket != null)
-@@ -91,6 +_,11 @@
+ 		if (IsActive)
+@@ -104,6 +_,11 @@
  		SpamWater = 0f;
  	}
  
@@ -55,20 +45,29 @@
  	public static void CheckSection(int playerIndex, Vector2 position, int fluff = 1)
  	{
  		RemoteClient remoteClient = Netplay.Clients[playerIndex];
-@@ -223,7 +_,7 @@
+@@ -238,7 +_,7 @@
+ 	public void Update()
+ 	{
+ 		if (!IsConnected()) {
+-			RequestTermination("Connection Lost");
++			SetPendingTermination("Connection Lost");
+ 		}
+ 		else {
+ 			if (_isReading)
+@@ -253,7 +_,7 @@
+ 			catch {
+ 				_isReading = false;
+ 				IsConnected();
+-				RequestTermination("Connection Lost (Exception caught from Socket.AsyncReceive)");
++				SetPendingTermination("Connection Lost (Exception caught from Socket.AsyncReceive)");
  			}
  		}
- 		catch {
--			PendingTermination = true;
-+			SetPendingTermination("Exception in RemoteClient.TryRead");
- 		}
  	}
- 
-@@ -231,7 +_,7 @@
+@@ -262,7 +_,7 @@
  	{
  		if (!Netplay.Disconnect) {
  			if (length == 0) {
--				PendingTermination = true;
+-				RequestTermination("ServerReadCallBack returned no data");
 +				SetPendingTermination("ServerReadCallBack returned no data");
  			}
  			else {

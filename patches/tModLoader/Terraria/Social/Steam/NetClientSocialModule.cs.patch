@@ -27,4 +27,4 @@
 +		}
  	}
  
- 	public void ConnectToLobby(ulong lobbyId)
+ 	public void ConnectToLobby(ulong lobbyId, bool performPlayerSelect = true)

@@ -67,7 +67,7 @@
  	public override void OnTagAppliedToNPC(Player player, NPC npc)
  	{
  		if (player == Main.LocalPlayer)
-@@ -47,17 +_,45 @@
+@@ -47,14 +_,43 @@
  		}
  	}
  
@@ -88,12 +88,10 @@
 +		/*
  		changes.AddProjectileTagDamage = true;
  		changes.AddedBaseDamage += TagDamage;
- 		if (changes.HighestAddedBaseDamage < TagDamage)
- 			changes.HighestAddedBaseDamage = TagDamage;
 +		*/
 +
 +		modifiers.FlatBonusDamage += TagDamage * ProjectileID.Sets.SummonTagDamageMultiplier[optionalProjectile.type];
- 
++
  		if (Main.rand.Next(100) < CritChance)
 +			/*
  			changes.Crit = true;

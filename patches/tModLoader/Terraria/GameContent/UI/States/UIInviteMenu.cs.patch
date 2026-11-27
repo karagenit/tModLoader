@@ -1,0 +1,12 @@
+--- src/TerrariaNetCore/Terraria/GameContent/UI/States/UIInviteMenu.cs
++++ src/tModLoader/Terraria/GameContent/UI/States/UIInviteMenu.cs
+@@ -20,6 +_,9 @@
+ 
+ public class UIInviteMenu : UIState, IHaveBackButtonCommand
+ {
++	// Added by TML. Unused, HandleBackButtonUsage has its own logic.
++	public UIState PreviousUIState { get; set; }
++
+ 	private UITextPanel<LocalizedText> _inviteButton;
+ 	private UITextPanel<LocalizedText> _backButton;
+ 	private UIText _descriptionText;

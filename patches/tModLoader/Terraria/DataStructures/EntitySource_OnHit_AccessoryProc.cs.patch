@@ -1,0 +1,19 @@
+--- src/TerrariaNetCore/Terraria/DataStructures/EntitySource_OnHit_AccessoryProc.cs
++++ src/tModLoader/Terraria/DataStructures/EntitySource_OnHit_AccessoryProc.cs
+@@ -1,11 +_,13 @@
++#nullable enable
++
+ namespace Terraria.DataStructures;
+ 
+-public class EntitySource_OnHit_AccessoryProc : AEntitySource_OnHit
++public class EntitySource_OnHit_AccessoryProc : EntitySource_OnHit
+ {
+ 	public readonly int ItemType;
+ 
+-	public EntitySource_OnHit_AccessoryProc(IEntitySourceTarget entityStriking, IEntitySourceTarget entityStruck, int itemType)
+-		: base(entityStriking, entityStruck)
++	public EntitySource_OnHit_AccessoryProc(IEntitySourceTarget entityStriking, IEntitySourceTarget entityStruck, int itemType, string? context = null)
++		: base(entityStriking, entityStruck, context)
+ 	{
+ 		ItemType = itemType;
+ 	}

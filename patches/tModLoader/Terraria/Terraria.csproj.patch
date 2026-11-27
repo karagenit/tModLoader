@@ -8,7 +8,7 @@
  
  	<!-- General -->
  	<PropertyGroup>
-@@ -11,59 +_,96 @@
+@@ -11,60 +_,97 @@
  		<Company>Re-Logic</Company>
  		<Copyright>Copyright © 2026 Re-Logic</Copyright>
  		<RootNamespace>Terraria</RootNamespace>
@@ -71,6 +71,7 @@
  		<Reference Include="MP3Sharp" />
 -		<Reference Include="Newtonsoft.Json" />
  		<Reference Include="NVorbis" />
+ 		<Reference Include="OpenNAT" />
  		<Reference Include="RailSDK.Net" />
  		<Reference Include="SteelSeriesEngineWrapper" />
 +		<Reference Include="TerrariaHooks" />
@@ -118,7 +119,7 @@
  	</ItemGroup>
  
  	<!-- Import tasks -->
-@@ -104,9 +_,13 @@
+@@ -105,9 +_,13 @@
  	<!-- Installs the build's output into the relevant game folder. -->
  	<Target Name="CopyToActualOutputDirectory" AfterTargets="Build">
  		<PropertyGroup>
@@ -133,7 +134,7 @@
  		<!-- Copy files systematically to output folder -->
  		<ItemGroup>
  			<BinFiles Include="$(TargetDir)**" />
-@@ -114,6 +_,7 @@
+@@ -115,6 +_,7 @@
  
  		<Message Text="Copying $(AssemblyName) to '$(_ActualOutputDirectory)'..." Importance="high" />
  		<Copy SourceFiles="@(BinFiles)" DestinationFolder="$(_ActualOutputDirectory)/%(RecursiveDir)" SkipUnchangedFiles="True" />

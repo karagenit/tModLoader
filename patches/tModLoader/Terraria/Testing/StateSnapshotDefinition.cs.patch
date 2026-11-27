@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/Testing/StateSnapshotDefinition.cs
 +++ src/tModLoader/Terraria/Testing/StateSnapshotDefinition.cs
-@@ -146,6 +_,10 @@
+@@ -147,6 +_,10 @@
  		_components.Add(c);
  	}
  
@@ -10,4 +10,4 @@
 +
  	public StateSnapshot Capture()
  	{
- 		DeepCloneContext ctx = new DeepCloneContext(isBackup: true);
+ 		DeepCloneContext ctx = new DeepCloneContext(_capacityHint, isBackup: true);

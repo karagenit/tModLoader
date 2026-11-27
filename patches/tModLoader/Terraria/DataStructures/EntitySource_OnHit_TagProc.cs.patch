@@ -1,0 +1,21 @@
+--- src/TerrariaNetCore/Terraria/DataStructures/EntitySource_OnHit_TagProc.cs
++++ src/tModLoader/Terraria/DataStructures/EntitySource_OnHit_TagProc.cs
+@@ -1,13 +_,15 @@
++#nullable enable
++
+ using Terraria.GameContent.Items;
+ 
+ namespace Terraria.DataStructures;
+ 
+-public class EntitySource_OnHit_TagProc : AEntitySource_OnHit
++public class EntitySource_OnHit_TagProc : EntitySource_OnHit
+ {
+ 	public readonly UniqueTagEffect TagEffect;
+ 
+-	public EntitySource_OnHit_TagProc(IEntitySourceTarget entityStriking, IEntitySourceTarget entityStruck, UniqueTagEffect tagEffect)
+-		: base(entityStriking, entityStruck)
++	public EntitySource_OnHit_TagProc(IEntitySourceTarget entityStriking, IEntitySourceTarget entityStruck, UniqueTagEffect tagEffect, string? context = null)
++		: base(entityStriking, entityStruck, context)
+ 	{
+ 		TagEffect = tagEffect;
+ 	}

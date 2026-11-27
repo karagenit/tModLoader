@@ -1,0 +1,12 @@
+--- src/TerrariaNetCore/Terraria/GameContent/UI/States/UIMultiplayerLobby.cs
++++ src/tModLoader/Terraria/GameContent/UI/States/UIMultiplayerLobby.cs
+@@ -22,6 +_,9 @@
+ 
+ public class UIMultiplayerLobby : UIState, IHaveBackButtonCommand
+ {
++	// Added by TML. Unused, HandleBackButtonUsage has its own logic.
++	public UIState PreviousUIState { get; set; }
++
+ 	public class UIServerHeader : UIPanel
+ 	{
+ 		private ServerInformation _data;

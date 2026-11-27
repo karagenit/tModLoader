@@ -1,14 +1,14 @@
 --- src/TerrariaNetCore/Terraria/IngameOptions.cs
 +++ src/tModLoader/Terraria/IngameOptions.cs
-@@ -7,6 +_,8 @@
- using Terraria.GameContent.UI.BigProgressBar;
+@@ -8,6 +_,8 @@
+ using Terraria.GameContent.UI.States;
  using Terraria.GameInput;
  using Terraria.Localization;
 +using Terraria.ModLoader;
 +using Terraria.ModLoader.UI;
- using Terraria.Social;
  using Terraria.UI;
  using Terraria.UI.Gamepad;
+ 
 @@ -17,7 +_,8 @@
  {
  	public const int width = 670;
@@ -20,7 +20,7 @@
  		0.7f,
  		0.7f,
 @@ -188,6 +_,9 @@
- 		bool flag5 = SocialAPI.Network != null && SocialAPI.Network.CanInvite();
+ 		bool flag5 = Main.netMode != 0;
  		int num7 = (flag5 ? 1 : 0);
  		int num8 = 5 + num7 + 2;
 +

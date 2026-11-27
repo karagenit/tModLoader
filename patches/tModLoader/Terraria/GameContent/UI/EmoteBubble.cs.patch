@@ -1,6 +1,6 @@
 --- src/TerrariaNetCore/Terraria/GameContent/UI/EmoteBubble.cs
 +++ src/tModLoader/Terraria/GameContent/UI/EmoteBubble.cs
-@@ -2,24 +_,29 @@
+@@ -1,23 +_,28 @@
  using System.Collections.Generic;
  using Microsoft.Xna.Framework;
  using Microsoft.Xna.Framework.Graphics;
@@ -30,54 +30,12 @@
 +	/// This is the internal ID of this EmoteBubble.
 +	/// </summary>
  	public int emote;
- 	public int metadata;
 -	private const int frameSpeed = 8;
 +	public int frameSpeed = 8;
  	public int frameCounter;
  	public int frame;
  	public const int EMOTE_SHEET_HORIZONTAL_FRAMES = 8;
-@@ -54,7 +_,7 @@
- 		}
- 	}
- 
--	public static Tuple<int, int> SerializeNetAnchor(WorldUIAnchor anch)
-+	public static Tuple<int, float> SerializeNetAnchor(WorldUIAnchor anch)
- 	{
- 		if (anch.type == WorldUIAnchor.AnchorType.Entity) {
- 			int item = 0;
-@@ -65,21 +_,25 @@
- 			else if (anch.entity is Projectile)
- 				item = 2;
- 
-+			// Projectile whoAmI differs between sides, so projectiles are identified by the bits of their key
-+			if (anch.entity is Projectile projectile)
-+				return Tuple.Create(item, (float)projectile.key);
-+
--			return Tuple.Create(item, anch.entity.whoAmI);
-+			return Tuple.Create(item, (float)anch.entity.whoAmI);
- 		}
- 
--		return Tuple.Create(0, 0);
-+		return Tuple.Create(0, 0f);
- 	}
- 
--	public static WorldUIAnchor DeserializeNetAnchor(int type, int meta)
-+	public static WorldUIAnchor DeserializeNetAnchor(int type, float meta)
- 	{
- 		switch (type) {
- 			case 0:
--				return new WorldUIAnchor(Main.npc[meta]);
-+				return new WorldUIAnchor(Main.npc[(int)meta]);
- 			case 1:
--				return new WorldUIAnchor(Main.player[meta]);
-+				return new WorldUIAnchor(Main.player[(int)meta]);
- 			case 2:
--				return new WorldUIAnchor(Main.projectile[meta]);
-+				return new WorldUIAnchor(((ProjectileKey)meta).TryGetActive(out var projectile) ? projectile : Main.projectile[Main.maxProjectiles]);
- 			default:
- 				throw new Exception("How did you end up getting this?");
- 		}
-@@ -87,6 +_,13 @@
+@@ -54,6 +_,13 @@
  
  	public static int AssignNewID() => NextID++;
  
@@ -91,14 +49,8 @@
  	public static int NewBubble(int emoticon, WorldUIAnchor bubbleAnchor, int time)
  	{
  		if (Main.netMode == 1)
-@@ -96,31 +_,50 @@
- 		emoteBubble.ID = AssignNewID();
- 		byID[emoteBubble.ID] = emoteBubble;
- 		if (Main.netMode == 2) {
--			Tuple<int, int> tuple = SerializeNetAnchor(bubbleAnchor);
-+			Tuple<int, float> tuple = SerializeNetAnchor(bubbleAnchor);
- 			NetMessage.SendData(91, -1, -1, null, emoteBubble.ID, tuple.Item1, tuple.Item2, time, emoticon);
- 		}
+@@ -66,24 +_,43 @@
+ 			NetMessage.SendData(91, -1, -1, null, emoteBubble.ID);
  
  		OnBubbleChange(emoteBubble.ID);
 +
@@ -127,11 +79,8 @@
 +			return -1;
 +		emoteBubble.ID = AssignNewID();
 +		byID[emoteBubble.ID] = emoteBubble;
- 		if (Main.netMode == 2) {
--			Tuple<int, int> tuple = SerializeNetAnchor(bubbleAnchor);
-+			Tuple<int, float> tuple = SerializeNetAnchor(bubbleAnchor);
- 			NetMessage.SendData(91, -1, -1, null, emoteBubble.ID, tuple.Item1, tuple.Item2, time, emoteBubble.emote, emoteBubble.metadata);
- 		}
+ 		if (Main.netMode == 2)
+ 			NetMessage.SendData(91, -1, -1, null, emoteBubble.ID);
  
 +		EmoteBubbleLoader.OnSpawn(emoteBubble);
 +
@@ -146,7 +95,7 @@
  	public static void CheckForNPCsToReactToEmoteBubble(int emoteID, Player player)
  	{
  		for (int i = 0; i < Main.maxNPCs; i++) {
-@@ -146,7 +_,11 @@
+@@ -109,7 +_,11 @@
  
  	private void Update()
  	{
@@ -159,7 +108,7 @@
  			frameCounter = 0;
  			if (++frame >= 2)
  				frame = 0;
-@@ -168,7 +_,12 @@
+@@ -131,7 +_,12 @@
  		Texture2D value = TextureAssets.Extra[48].Value;
  		SpriteEffects effect = SpriteEffects.None;
  		Vector2 position = GetPosition(out effect);
@@ -172,7 +121,7 @@
  		bool flag = lifeTime < 6 || lifeTimeStart - lifeTime < 6;
  		Rectangle value2 = value.Frame(8, EMOTE_SHEET_VERTICAL_FRAMES, (!flag) ? 1 : 0);
  		Vector2 origin = new Vector2(value2.Width / 2, value2.Height);
-@@ -178,7 +_,28 @@
+@@ -141,15 +_,38 @@
  			position = Main.ReverseGravitySupport(position);
  		}
  
@@ -199,31 +148,21 @@
 +
 -		sb.Draw(value, position, value2, Color.White, 0f, origin, 1f, effect, 0f);
 +		sb.Draw(TextureAssets.Extra[48].Value, position, value2, Color.White, 0f, origin, 1f, effect, 0f);
- 		if (flag)
- 			return;
- 
-@@ -188,7 +_,7 @@
+ 		if (!flag && emote >= 0) {
+ 			if ((emote == 87 || emote == 89) && (effect & SpriteEffects.FlipHorizontally) != 0) {
+ 				effect &= ~SpriteEffects.FlipHorizontally;
  				position.X += 4f;
  			}
  
 -			sb.Draw(value, position, value.Frame(8, EMOTE_SHEET_VERTICAL_FRAMES, emote * 2 % 8 + frame, 1 + emote / 4), Color.White, 0f, origin, 1f, effect, 0f);
 +			sb.Draw(value, position, emoteFrame, Color.White, 0f, origin, 1f, effect, 0f);
  		}
- 		else if (emote == -1) {
- 			value = TextureAssets.NpcHead[metadata].Value;
-@@ -199,8 +_,10 @@
- 			if ((float)value.Height / 16f > 1f / num)
- 				num = 16f / (float)value.Height;
- 
--			sb.Draw(value, position + new Vector2(((effect & SpriteEffects.FlipHorizontally) != 0) ? 1 : (-1), -value2.Height + 3), null, Color.White, 0f, new Vector2(value.Width / 2, 0f), num, effect, 0f);
-+			sb.Draw(value, position, null, Color.White, 0f, new Vector2(value.Width / 2, 0f), num, effect, 0f);
- 		}
 +
 +		EmoteBubbleLoader.PostDraw(this, sb, value, position, emoteFrame, origin, effect);
  	}
  
  	private Vector2 GetPosition(out SpriteEffects effect)
-@@ -233,6 +_,10 @@
+@@ -182,6 +_,10 @@
  		}
  	}
  
@@ -234,7 +173,7 @@
  	public static void MakeLocalPlayerEmote(int emoteId)
  	{
  		if (Main.netMode == 2 || !Main.LocalPlayer.dead) {
-@@ -290,7 +_,15 @@
+@@ -239,7 +_,15 @@
  			ProbeCombat(list);
  		}
  
@@ -251,7 +190,7 @@
  			emote = list[Main.rand.Next(list.Count)];
  	}
  
-@@ -382,7 +_,7 @@
+@@ -331,7 +_,7 @@
  
  	private void ProbeTownNPCs(List<int> list)
  	{
@@ -260,7 +199,7 @@
  			CountNPCs[i] = 0;
  		}
  
-@@ -392,7 +_,7 @@
+@@ -341,7 +_,7 @@
  		}
  
  		int type = ((NPC)anchor.entity).type;
@@ -269,7 +208,7 @@
  			if (NPCID.Sets.FaceEmote[k] > 0 && CountNPCs[k] > 0 && k != type)
  				list.Add(NPCID.Sets.FaceEmote[k]);
  		}
-@@ -420,7 +_,7 @@
+@@ -369,7 +_,7 @@
  			list.Add(29);
  		else if (plr.ZoneDesert)
  			list.Add(28);

@@ -1,68 +1,19 @@
 --- src/Terraria/Terraria/Netplay.cs
 +++ src/TerrariaNetCore/Terraria/Netplay.cs
-@@ -4,9 +_,7 @@
- using System.Net;
- using System.Net.Sockets;
- using System.Threading;
--#if SERVER && WINDOWS
- using NATUPNPLib;
--#endif
- using ReLogic.OS;
- using Terraria.Audio;
- using Terraria.Localization;
-@@ -48,10 +_,8 @@
- 	public static bool SpamCheck = false;
- 	public static bool HasFullyConnectedClients;
- 	private static Thread _serverThread;
--#if SERVER && WINDOWS
--	private static UPnPNAT _upnpnat;
-+	public static UPnPNAT _upnpnat;
--	private static IStaticPortMappingCollection _mappings;
-+	public static IStaticPortMappingCollection _mappings;
--#endif
- 	public static MessageBuffer fullBuffer = new MessageBuffer();
- 	private static int _currentRequestId;
- 	private static long swTicksLast;
-@@ -133,10 +_,12 @@
- 
- 	private static void OpenPort(int port)
+@@ -737,7 +_,12 @@
  	{
--#if SERVER && WINDOWS
-+		if (!Main.dedServ)
-+			return;
-+
- 		string localIPAddress = GetLocalIPAddress();
- 		if (_upnpnat == null) {
--			_upnpnat = (UPnPNAT)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("AE1E00AA-3FD5-403C-8A27-2BBDC30CD0E1")));
-+			_upnpnat = new UPnPNAT(); //(UPnPNAT)Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("AE1E00AA-3FD5-403C-8A27-2BBDC30CD0E1")));
- 			_mappings = _upnpnat.StaticPortMappingCollection;
+ 		foreach (Thread clientThread in clientThreads) {
+ 			if (clientThread.IsAlive)
++#if NETCORE
++				// Thread.Abort() is not supported as of .NET 5. Client loops exit once Netplay.Disconnect is set.
++				clientThread.Join(1000);
++#else
+ 				clientThread.Abort();
++#endif
  		}
  
-@@ -151,12 +_,13 @@
- 
- 		if (!flag)
- 			_mappings.Add(port, "TCP", port, localIPAddress, bEnabled: true, "Terraria Server");
--#endif
- 	}
- 
- 	private static void ClosePort(int port)
- 	{
--#if SERVER && WINDOWS
-+		if (!Main.dedServ)
-+			return;
-+
- 		string localIPAddress = GetLocalIPAddress();
- 		bool flag = false;
- 		if (_mappings == null)
-@@ -169,7 +_,6 @@
- 
- 		if (!flag)
- 			_mappings.Remove(port, "TCP");
--#endif
- 	}
- 
- 	private static void ServerFullWriteCallBack(object state)
-@@ -696,6 +_,8 @@
+ 		clientThreads.Clear();
+@@ -907,6 +_,8 @@
  	public static int GetSectionX(int x) => x / 200;
  	public static int GetSectionY(int y) => y / 150;
  
@@ -70,8 +21,8 @@
 +
  	private static void BroadcastThread()
  	{
- 		BroadcastClient = new UdpClient();
-@@ -726,7 +_,11 @@
+ 		new DateTime(0L);
+@@ -931,7 +_,11 @@
  			array = memoryStream.ToArray();
  		}
  
@@ -83,15 +34,15 @@
  			int num2 = 0;
  			for (int i = 0; i < 255; i++) {
  				if (Main.player[i].active)
-@@ -749,6 +_,7 @@
+@@ -1017,6 +_,7 @@
  		if (broadcastThread != null)
  			StopBroadCasting();
  
 +		abortBroadcastThread = false;
  		broadcastThread = new Thread(BroadcastThread);
+ 		broadcastThread.IsBackground = true;
  		broadcastThread.Start();
- 	}
-@@ -756,7 +_,16 @@
+@@ -1025,7 +_,16 @@
  	public static void StopBroadCasting()
  	{
  		if (broadcastThread != null) {
